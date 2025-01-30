@@ -28,7 +28,9 @@ class EnhancedSecurityMiddleware
         // Batasi akses berdasarkan IP
         $allowedIPs = [
             '127.0.0.1',  // localhost
-            '192.168.56.1'// Tambahkan IP yang diizinkan
+            '192.168.56.1',// Tambahkan IP yang diizinkan
+            '10.159.235.176',
+            '192.168.56.1'
         ];
 
         if (!in_array($request->ip(), $allowedIPs)) {
