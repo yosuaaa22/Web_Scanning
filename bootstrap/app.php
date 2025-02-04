@@ -39,4 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 Log::channel('security')->error($e->getMessage());
             }
         });
-    })->create();
+    })
+    ->create();
+
+    
