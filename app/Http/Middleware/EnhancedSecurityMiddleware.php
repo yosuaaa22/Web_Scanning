@@ -28,12 +28,25 @@ class EnhancedSecurityMiddleware
         // Batasi akses berdasarkan IP
         $allowedIPs = [
             '127.0.0.1',  // localhost
-            '192.168.56.1'// Tambahkan IP yang diizinkan
+<<<<<<< HEAD
+            '::1',        // localhost IPv6
+            '192.168.56.1',// Tambahkan IP yang diizinkan
+            '10.159.235.176',
+            '192.168.56.1',
+            '192.168.18.12'
+=======
+            '192.168.56.1', // Tambahkan IP yang diizinkan
+            '10.159.235.176',
+            '192.168.56.1',
+            '10.159.235.170',
+>>>>>>> a40493f006a7ce06a0848b75facb9a7cb9860582
         ];
 
-        if (!in_array($request->ip(), $allowedIPs)) {
+        $currentIP = $request->ip();
+
+        if (!in_array($currentIP, $allowedIPs)) {
             Log::warning('Unauthorized IP access attempt', [
-                'ip' => $request->ip(),
+                'ip' => $currentIP,
                 'url' => $request->fullUrl()
             ]);
             abort(403, 'Akses ditolak.');
