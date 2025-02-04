@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use App\Http\Middleware\EnhancedSecurityMiddleware;
 use App\Http\Middleware\SecurityScanMiddleware;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Console\Scheduling\Schedule;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,7 +22,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'security.enhanced' => EnhancedSecurityMiddleware::class,
             'security.scan' => SecurityScanMiddleware::class,
         ]);
-
         // Register global middleware
         $middleware->web(append: [
             \Illuminate\Cookie\Middleware\EncryptCookies::class,
@@ -32,6 +32,15 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             EnhancedSecurityMiddleware::class,
         ]);
+    })
+    ->withSchedule(function (Schedule $schedule) {
+        // Performance monitoring schedule
+        $schedule->command('monitor:performance')
+                ->everyMinute()
+                ->appendOutputTo(storage_path('logs/performance.log'))
+                ->onFailure(function () {
+                    Log::error('Performance monitoring schedule failed');
+                });
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->report(function (\Throwable $e) {
