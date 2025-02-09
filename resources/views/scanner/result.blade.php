@@ -366,7 +366,7 @@
     </div>
 </div>
 
-<!-- Gambling Analysis -->
+<!-- Gambling Analysisa -->
 <div class="card p-6">
     <h2 class="text-xl font-semibold mb-4">
         <i class="fas fa-dice mr-2 text-yellow-400"></i>Gambling Analysis
