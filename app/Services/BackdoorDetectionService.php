@@ -4,7 +4,6 @@ namespace App\Services;
 
 use Symfony\Component\DomCrawler\Crawler;
 use GuzzleHttp\Client;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 class BackdoorDetectionService
@@ -68,7 +67,7 @@ class BackdoorDetectionService
                     'verify' => false, // Set to false to handle self-signed certs
                     'headers' => [
                         'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                        'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,/;q=0.8',
                         'Accept-Language' => 'en-US,en;q=0.5',
                         'Connection' => 'close'
                     ],
@@ -229,6 +228,8 @@ class BackdoorDetectionService
         return array_filter($attackVectors);
     }
 
+
+
     private function analyzeEntryPoints($html)
     {
         $entryPoints = [];
@@ -236,7 +237,7 @@ class BackdoorDetectionService
         // Check for vulnerable GET/POST parameters
         $parameterPatterns = [
             'remote_file_inclusion' => [
-                '/\b(?:include|require)(?:_once)?\s*\(\s*\$_(GET|POST|REQUEST)\[[\'"](file|path|url|page)[\'"]/',
+                '/\b(?:include|require)(?:once)?\s*\(\s*\$(GET|POST|REQUEST)\[[\'"](file|path|url|page)[\'"]/',
                 '/\bfile_get_contents\s*\(\s*\$_(GET|POST|REQUEST)\[[\'"](url|source)[\'"]/'
             ],
             'code_execution' => [
@@ -245,7 +246,7 @@ class BackdoorDetectionService
             ],
             'command_execution' => [
                 '/\b(?:system|exec|shell_exec|passthru|popen)\s*\(\s*\$_(GET|POST|REQUEST)\[/',
-                '/\`[^`]*\$_(GET|POST|REQUEST)\[[^\]]+\][^`]*\`/'
+                '/\[^]\$_(GET|POST|REQUEST)\[[^\]]+\][^]\/'
             ]
         ];
 
@@ -280,14 +281,14 @@ class BackdoorDetectionService
         // Direct command execution
         $commandPatterns = [
             'system_commands' => [
-                '/\b(?:system|exec|shell_exec|passthru)\s*\([^)]*(?:\$(?:_GET|_POST|_REQUEST|_COOKIE)|[\'"].*(?:\||&|;).*[\'"])\s*\)/i',
-                '/\b(?:popen|proc_open)\s*\([^)]*(?:\$(?:_GET|_POST|_REQUEST|_COOKIE)|[\'"].*(?:\||&|;).*[\'"])\s*\)/i'
+                '/\b(?:system|exec|shell_exec|passthru)\s*\([^)](?:\$(?:_GET|_POST|_REQUEST|_COOKIE)|[\'"].(?:\||&|;).[\'"])\s\)/i',
+                '/\b(?:popen|proc_open)\s*\([^)](?:\$(?:_GET|_POST|_REQUEST|_COOKIE)|[\'"].(?:\||&|;).[\'"])\s\)/i'
             ],
             'backtick_execution' => [
-                '/`[^`]*(?:\$(?:_GET|_POST|_REQUEST|_COOKIE)|[\'"].*(?:\||&|;).*[\'"])[^`]*`/i'
+                '/[^](?:\$(?:_GET|_POST|_REQUEST|_COOKIE)|[\'"].(?:\||&|;).[\'"])[^]/i'
             ],
             'indirect_execution' => [
-                '/\$(?:cmd|command|exec|script)\s*=\s*(?:\$(?:_GET|_POST|_REQUEST|_COOKIE)|[\'"].*(?:\||&|;).*[\'"])/i',
+                '/\$(?:cmd|command|exec|script)\s*=\s*(?:\$(?:_GET|_POST|_REQUEST|_COOKIE)|[\'"].(?:\||&|;).[\'"])/i',
                 '/\b(?:escapeshell_cmd|escapeshell_arg)\s*\([^)]*\$[^)]+\)/i'
             ]
         ];
@@ -447,13 +448,13 @@ class BackdoorDetectionService
         // Check for persistence mechanisms
         $patterns = [
             'file_creation' => [
-                '/\b(?:fopen|file_put_contents)\s*\([^)]*(?:\.htaccess|\.php|\.jsp|\.asp)[\'"]\s*[,\)]/i',
-                '/\b(?:copy|rename|move_uploaded_file)\s*\([^)]*(?:\.php|\.jsp|\.asp)[\'"]\s*[,\)]/i'
+                '/\b(?:fopen|file_put_contents)\s*\([^)](?:\.htaccess|\.php|\.jsp|\.asp)[\'"]\s[,\)]/i',
+                '/\b(?:copy|rename|move_uploaded_file)\s*\([^)](?:\.php|\.jsp|\.asp)[\'"]\s[,\)]/i'
             ],
             'scheduled_tasks' => [
                 '/\b(?:cron|at|schtasks)\b/',
                 '/\* \* \* \* \*/', // Cron syntax
-                '/\b(?:system|exec|shell_exec)\s*\([^)]*(?:crontab|at|schtasks)[^)]*\)/'
+                '/\b(?:system|exec|shell_exec)\s*\([^)](?:crontab|at|schtasks)[^)]\)/'
             ],
             'auto_execution' => [
                 '/(?:auto_prepend_file|auto_append_file)\s*=/',
@@ -534,7 +535,7 @@ class BackdoorDetectionService
 
         // Check for dynamic function calls
         $dynamicFunctionPatterns = [
-            '/\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\s*\([^)]*\)/', // Variable functions
+            '/\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]\s\([^)]*\)/', // Variable functions
             '/\bcreate_function\s*\([^)]+\)/', // Dynamic function creation
             '/\beval\s*\([^)]+\)/', // eval usage
             '/\bassert\s*\([^)]+\)/', // assert usage
@@ -602,7 +603,7 @@ class BackdoorDetectionService
 
         foreach ($sensitiveOperations as $type => $pattern) {
             try {
-                $escapedPattern = '/' . preg_quote($pattern, '/') . '.*?\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*/i';
+                $escapedPattern = '/' . preg_quote($pattern, '/') . '.?\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]/i';
                 if (preg_match_all($escapedPattern, $html, $matches)) {
                     $flows['sensitive_operations'][$type] = array_unique($matches[0]);
                 }
@@ -712,7 +713,7 @@ class BackdoorDetectionService
             'globals' => '/\$GLOBALS\s*\[[^\]]+\]\s*=/',
             'superglobals' => '/\$_(?:GET|POST|REQUEST|SERVER|COOKIE|SESSION|ENV)\s*\[[^\]]+\]\s*=/',
             'reference_modification' => '/\${\s*[\'"][^\'"]+[\'"]\s*}/',
-            'variable_variables' => '/\$\s*\{?\s*\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\s*\}?/'
+            'variable_variables' => '/\$\s*\{?\s*\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]\s\}?/'
         ];
 
         foreach ($variableModificationPatterns as $type => $pattern) {
@@ -755,181 +756,574 @@ class BackdoorDetectionService
     private function analyzeSecurityRisks(Crawler $crawler, $html)
     {
         $risks = [
-            'script_analysis' => $this->analyzeScriptTags($crawler),
-            'link_analysis' => $this->analyzeLinkTags($crawler),
-            'form_analysis' => $this->analyzeFormElements($crawler),
-            'iframe_analysis' => $this->analyzeIframeElements($crawler),
-            'meta_analysis' => $this->analyzeMetaTags($crawler),
-            'comment_analysis' => $this->analyzeHtmlComments($crawler),
-            'input_validation' => $this->analyzeInputValidation($html),
-            'security_headers' => $this->checkSecurityHeaders($html),
+            'script_analysis' => $this->enhancedScriptAnalysis($crawler),
+            'link_analysis' => $this->enhancedLinkAnalysis($crawler),
+            'form_analysis' => $this->enhancedFormAnalysis($crawler),
+            'iframe_analysis' => $this->enhancedIframeAnalysis($crawler),
+            'meta_analysis' => $this->enhancedMetaAnalysis($crawler),
+            'comment_analysis' => $this->enhancedCommentAnalysis($crawler),
+            'input_validation' => $this->enhancedInputValidation($html),
+            'security_headers' => $this->enhancedSecurityHeaderCheck($html),
+            'dynamic_execution' => $this->analyzeDynamicExecution($html),
+            'data_exfiltration' => $this->analyzeDataExfiltration($html),
+            'persistence_mechanisms' => $this->analyzePersistenceMechanisms($html)
         ];
 
         return array_filter($risks);
     }
 
-    private function analyzeScriptTags(Crawler $crawler)
+    private function analyzeDataExfiltration($html)
     {
-        $scriptRisks = [];
-        $crawler->filter('script')->each(function ($node) use (&$scriptRisks) {
-            $content = $node->attr('src') ?? $node->text();
-
-            // Check for inline scripts
-            if (!$node->attr('src')) {
-                if (preg_match('/\b(eval|document\.write|innerHTML)\b/i', $content)) {
-                    $scriptRisks['dangerous_methods'][] = $content;
-                }
-
-                if (preg_match('/\b(localStorage|sessionStorage|cookie)\b/i', $content)) {
-                    $scriptRisks['storage_access'][] = $content;
-                }
-            }
-
-            // Check external scripts
-            if ($src = $node->attr('src')) {
-                if (!preg_match('/^https:/', $src)) {
-                    $scriptRisks['insecure_sources'][] = $src;
-                }
-                if (preg_match('/\.(php|asp|jsp)\b/i', $src)) {
-                    $scriptRisks['dynamic_sources'][] = $src;
-                }
-            }
-        });
-
-        return $scriptRisks;
+        return [
+            'database_operations' => $this->analyzeDatabaseOperations($html),
+            'network_operations' => $this->analyzeNetworkOperations($html),
+            'file_operations' => $this->analyzeFileOperations($html),
+            'sensitive_data_patterns' => $this->analyzeSensitiveDataPatterns($html),
+            'data_encoding' => $this->analyzeDataEncoding($html),
+            'communication_channels' => $this->analyzeCommsChannels($html),
+            'storage_operations' => $this->analyzeStorageOperations($html),
+            'context_analysis' => $this->analyzeDataContext($html)
+        ];
     }
 
-    private function analyzeLinkTags(Crawler $crawler)
+    private function analyzeSensitiveDataPatterns($html)
     {
-        $linkRisks = [];
-        $crawler->filter('a')->each(function ($node) use (&$linkRisks) {
-            $href = $node->attr('href');
-            if ($href) {
-                if (preg_match('/\.(php|asp|jsp)\?.*=(.*)/i', $href)) {
-                    $linkRisks['suspicious_parameters'][] = $href;
-                }
-                if (preg_match('/javascript:/i', $href)) {
-                    $linkRisks['javascript_protocol'][] = $href;
-                }
-                if (preg_match('/(admin|shell|backdoor|upload)/i', $href)) {
-                    $linkRisks['suspicious_endpoints'][] = $href;
-                }
-            }
-        });
+        $sensitiveDataRisks = [
+            'credentials' => [],
+            'personal_info' => [],
+            'system_data' => []
+        ];
 
-        return $linkRisks;
-    }
+        // Credential and authentication patterns
+        $credentialPatterns = [
+            'password_patterns' => '/(?:password|passwd|pwd)[\s:=]+[\'"][^\'"\s]{6,}[\'"]/i',
+            'api_keys' => '/(?:api_key|secret|token)[\s:=]+[\'"][^\'"\s]{20,}[\'"]/i',
+            'jwt_tokens' => '/eyJ[A-Za-z0-9-]+\.[A-Za-z0-9-]+\.[A-Za-z0-9-_]+/i'
+        ];
 
-    private function analyzeFormElements(Crawler $crawler)
-    {
-        $formRisks = [];
-        $crawler->filter('form')->each(function ($node) use (&$formRisks) {
-            $action = $node->attr('action');
-
-            // Check for insecure form submission
-            if ($action && !preg_match('/^https:/', $action)) {
-                $formRisks['insecure_form_action'][] = $action;
-            }
-
-            // Check for file upload capabilities
-            $node->filter('input[type="file"]')->each(function ($input) use (&$formRisks) {
-                $formRisks['file_upload_forms'][] = [
-                    'name' => $input->attr('name'),
-                    'accept' => $input->attr('accept')
-                ];
-            });
-        });
-
-        return $formRisks;
-    }
-
-    private function analyzeIframeElements(Crawler $crawler)
-    {
-        $iframeRisks = [];
-        $crawler->filter('iframe')->each(function ($node) use (&$iframeRisks) {
-            $src = $node->attr('src');
-            if ($src) {
-                if (!preg_match('/^https:/', $src)) {
-                    $iframeRisks['insecure_iframe'][] = $src;
-                }
-                if (preg_match('/(data|javascript):/i', $src)) {
-                    $iframeRisks['suspicious_protocol'][] = $src;
-                }
-            }
-        });
-
-        return $iframeRisks;
-    }
-
-    private function analyzeMetaTags(Crawler $crawler)
-    {
-        $metaRisks = [];
-        $crawler->filter('meta')->each(function ($node) use (&$metaRisks) {
-            $content = $node->attr('content');
-            if ($content) {
-                if (preg_match('/(php|asp|jsp)/i', $content)) {
-                    $metaRisks['suspicious_meta_content'][] = $content;
-                }
-            }
-        });
-
-        return $metaRisks;
-    }
-
-    private function analyzeHtmlComments(Crawler $crawler)
-    {
-        $commentRisks = [];
-        preg_match_all('/<!--(.*?)-->/s', $crawler->html(), $matches);
-
-        foreach ($matches[1] as $comment) {
-            if (preg_match('/(password|user|admin|key|token|secret)/i', $comment)) {
-                $commentRisks['sensitive_data'][] = $comment;
-            }
-            if (preg_match('/(todo|hack|fixme|backdoor)/i', $comment)) {
-                $commentRisks['suspicious_comments'][] = $comment;
+        foreach ($credentialPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $sensitiveDataRisks['credentials'][$type] = array_unique($matches[0]);
             }
         }
 
-        return $commentRisks;
-    }
+        // Personal information patterns
+        $personalInfoPatterns = [
+            'email_addresses' => '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/i',
+            'phone_numbers' => '/\b(?:\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b/',
+            'social_security' => '/\b\d{3}-\d{2}-\d{4}\b/',
+            'credit_cards' => '/\b(?:\d{4}[-\s]?){3}\d{4}\b/'
+        ];
 
-    private function analyzeInputValidation($html)
-    {
-        $validationRisks = [];
-
-        // Check for unfiltered inputs
-        if (preg_match_all('/\$_(GET|POST|REQUEST|COOKIE)\[([^\]]+)\]/', $html, $matches)) {
-            foreach ($matches[0] as $index => $match) {
-                $validationRisks['unfiltered_inputs'][] = [
-                    'type' => $matches[1][$index],
-                    'variable' => $matches[2][$index]
-                ];
+        foreach ($personalInfoPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $sensitiveDataRisks['personal_info'][$type] = array_unique($matches[0]);
             }
         }
 
-        // Check for unsafe variable handling
-        if (preg_match_all('/\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\s*=\s*\$_(GET|POST|REQUEST|COOKIE)/', $html, $matches)) {
-            $validationRisks['direct_assignments'] = $matches[0];
+        // System and configuration data
+        $systemDataPatterns = [
+            'server_info' => '/\b(?:phpinfo\(\)|get_current_user\(\)|getcwd\(\))\b/i',
+            'system_paths' => '/(?:\/(?:etc|var|home|root|usr)\/[^\s]+)/i',
+            'environment_vars' => '/\$(?:_SERVER|_ENV)\[[\'"][^\'"]+[\'"]\]/i'
+        ];
+
+        foreach ($systemDataPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $sensitiveDataRisks['system_data'][$type] = array_unique($matches[0]);
+            }
         }
 
-        return $validationRisks;
+        return array_filter($sensitiveDataRisks);
     }
 
-    private function checkSecurityHeaders($html)
+
+    private function analyzeDatabaseOperations($html)
     {
-        $headerRisks = [];
+        $databaseRisks = [
+            'sql_queries' => [],
+            'connection_attempts' => [],
+            'data_manipulation' => []
+        ];
 
-        // Check for security-related meta tags
-        if (!preg_match('/<meta\s+http-equiv="X-Frame-Options"/i', $html)) {
-            $headerRisks['missing_headers'][] = 'X-Frame-Options';
+        // Detect potential SQL queries and database operations
+        $sqlPatterns = [
+            'select_queries' => '/\b(?:SELECT|SELECT\s+DISTINCT)\s+.*\sFROM\b/i',
+            'insert_queries' => '/\bINSERT\s+(?:INTO|IGNORE\s+INTO)\b/i',
+            'update_queries' => '/\bUPDATE\s+\w+\s+SET\b/i',
+            'delete_queries' => '/\bDELETE\s+FROM\b/i',
+            'join_operations' => '/\b(?:INNER\s+JOIN|LEFT\s+JOIN|RIGHT\s+JOIN)\b/i'
+        ];
+
+        foreach ($sqlPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $databaseRisks['sql_queries'][$type] = array_unique($matches[0]);
+            }
         }
 
-        if (!preg_match('/<meta\s+http-equiv="Content-Security-Policy"/i', $html)) {
-            $headerRisks['missing_headers'][] = 'Content-Security-Policy';
+        // Detect database connection and manipulation functions
+        $connectionPatterns = [
+            'mysql_functions' => '/\b(?:mysql_connect|mysqli_connect|PDO::__construct)\s*\(/i',
+            'connection_params' => '/(?:host|database|username|password)\s*=\s*[\'"][^\'"]*/i',
+            'prepared_statements' => '/\b(?:prepare|bindParam|execute)\s*\(/i'
+        ];
+
+        foreach ($connectionPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $databaseRisks['connection_attempts'][$type] = array_unique($matches[0]);
+            }
         }
 
-        return $headerRisks;
+        // Advanced data manipulation detection
+        $manipulationPatterns = [
+            'bulk_operations' => '/\b(?:INSERT\s+MULTIPLE|BULK\s+INSERT)\b/i',
+            'data_export' => '/\b(?:SELECT\s+.*\bINTO\s+OUTFILE)\b/i',
+            'stored_procedures' => '/\bCALL\s+\w+\s*\(/i'
+        ];
+
+        foreach ($manipulationPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $databaseRisks['data_manipulation'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        return array_filter($databaseRisks);
     }
+
+    private function analyzeNetworkOperations($html)
+    {
+        $networkRisks = [
+            'remote_connections' => [],
+            'data_transfer' => [],
+            'protocol_usage' => []
+        ];
+
+        // Detect network connection functions and techniques
+        $connectionPatterns = [
+            'socket_connections' => '/\b(?:fsockopen|stream_socket_client|socket_connect)\s*\(/i',
+            'curl_operations' => '/\bcurl_(?:init|setopt|exec|close)\s*\(/i',
+            'remote_file_access' => '/\b(?:file_get_contents|fopen)\s*\([\'"](?:https?|ftp|sftp):/i',
+            'dns_lookup' => '/\b(?:gethostbyname|dns_get_record)\s*\(/i'
+        ];
+
+        foreach ($connectionPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $networkRisks['remote_connections'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // Detect data transfer techniques
+        $transferPatterns = [
+            'data_upload' => '/\b(?:move_uploaded_file|curl_setopt\s*\([^)]+CURLOPT_UPLOAD)\b/i',
+            'remote_download' => '/\b(?:wget|curl)\s+[\'"][^\'"]*/i',
+            'file_transfer' => '/\b(?:ftp_(?:put|get)|ssh2_(?:sftp_put|sftp_get))\s*\(/i'
+        ];
+
+        foreach ($transferPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $networkRisks['data_transfer'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // Analyze protocol and data transmission methods
+        $protocolPatterns = [
+            'http_methods' => '/\b(?:GET|POST|HEAD|OPTIONS|PUT|DELETE)\s+HTTP\/\d\.\d/i',
+            'encryption_protocols' => '/\b(?:SSL|TLS|HTTPS)\b/i',
+            'api_calls' => '/\b(?:curl_setopt\s*\([^)]+CURLOPT_[A-Z_]+)\b/i'
+        ];
+
+        foreach ($protocolPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $networkRisks['protocol_usage'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        return array_filter($networkRisks);
+    }
+
+    private function analyzeFileOperations($html)
+    {
+        $fileRisks = [
+            'read_operations' => [],
+            'write_operations' => [],
+            'deletion_operations' => [],
+            'permission_changes' => []
+        ];
+
+        // File read operations detection
+        $readPatterns = [
+            'file_reading' => '/\b(?:file_get_contents|fopen|readfile|fread)\s*\(/i',
+            'directory_listing' => '/\b(?:scandir|glob|readdir)\s*\(/i',
+            'file_parsing' => '/\b(?:parse_ini_file|simplexml_load_file)\s*\(/i'
+        ];
+
+        foreach ($readPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $fileRisks['read_operations'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // File write operations detection
+        $writePatterns = [
+            'file_writing' => '/\b(?:file_put_contents|fwrite|fputs)\s*\(/i',
+            'file_creation' => '/\b(?:touch|tmpfile)\s*\(/i',
+            'log_writing' => '/\b(?:error_log|syslog)\s*\(/i'
+        ];
+
+        foreach ($writePatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $fileRisks['write_operations'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // File deletion and manipulation operations
+        $deletePatterns = [
+            'file_deletion' => '/\b(?:unlink|rmdir|delete_file)\s*\(/i',
+            'file_truncation' => '/\b(?:ftruncate)\s*\(/i',
+            'file_moving' => '/\b(?:rename|copy)\s*\(/i'
+        ];
+
+        foreach ($deletePatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $fileRisks['deletion_operations'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // File permission and ownership changes
+        $permissionPatterns = [
+            'permission_modification' => '/\b(?:chmod|chown|chgrp)\s*\(/i',
+            'access_control' => '/\b(?:is_readable|is_writable|is_executable)\s*\(/i'
+        ];
+
+        foreach ($permissionPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $fileRisks['permission_changes'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        return array_filter($fileRisks);
+    }
+
+
+
+    private function analyzeDataEncoding($html)
+    {
+        $encodingRisks = [
+            'base64_encoding' => [],
+            'url_encoding' => [],
+            'hex_encoding' => [],
+            'obfuscation_techniques' => []
+        ];
+
+        // Base64 encoding detection
+        $base64Patterns = [
+            'base64_functions' => '/\b(?:base64_encode|base64_decode)\s*\(/i',
+            'base64_strings' => '/[a-zA-Z0-9+\/]{32,}={0,2}/',
+            'base64_file_handling' => '/\bfile_get_contents\s*\(["\']data:.*base64,/i'
+        ];
+
+        foreach ($base64Patterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $encodingRisks['base64_encoding'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // URL encoding detection
+        $urlEncodingPatterns = [
+            'urlencode_functions' => '/\b(?:urlencode|urldecode)\s*\(/i',
+            'url_encoded_data' => '/%[0-9A-Fa-f]{2}/',
+            'complex_url_encoding' => '/(?:\+|\%20|\%0A|\%0D)/'
+        ];
+
+        foreach ($urlEncodingPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $encodingRisks['url_encoding'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // Hex encoding detection
+        $hexEncodingPatterns = [
+            'hex_functions' => '/\b(?:hex2bin|bin2hex)\s*\(/i',
+            'hex_strings' => '/0x[0-9A-Fa-f]+/',
+            'unicode_escaping' => '/\\\\x[0-9A-Fa-f]{2}/'
+        ];
+
+        foreach ($hexEncodingPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $encodingRisks['hex_encoding'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // Advanced obfuscation techniques
+        $obfuscationPatterns = [
+            'string_splitting' => '/[\'"][^\'"]+[\'"]\s*\.\s*[\'"][^\'"]+[\'"]/',
+            'char_code_conversion' => '/\bchr\(\d+\)/',
+            'rot_encoding' => '/\bstr_rot13\s*\(/i',
+            'compression' => '/\b(?:gzinflate|gzuncompress|gzdecode)\s*\(/i'
+        ];
+
+        foreach ($obfuscationPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $encodingRisks['obfuscation_techniques'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        return array_filter($encodingRisks);
+    }
+
+    private function analyzeCommsChannels($html)
+    {
+        $communicationRisks = [
+            'messaging_channels' => [],
+            'external_communication' => [],
+            'inter_process_communication' => []
+        ];
+
+        // Messaging and communication detection
+        $messagingPatterns = [
+            'email_functions' => '/\b(?:mail|imap_open|smtp_connect)\s*\(/i',
+            'websocket_usage' => '/\b(?:WebSocket|socket\.io)\b/i',
+            'pub_sub_channels' => '/\b(?:publish|subscribe|channel)\b/i'
+        ];
+
+        foreach ($messagingPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $communicationRisks['messaging_channels'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // External communication methods
+        $externalCommunicationPatterns = [
+            'remote_apis' => '/\b(?:curl_exec|file_get_contents)\s*\([\'"]https?:/i',
+            'external_services' => '/\b(?:Amazon|Google|Facebook|Twitter)\.(?:API|Service)\b/i',
+            'cloud_storage' => '/\b(?:S3|Azure|GCP)\s*(?:upload|download)\b/i'
+        ];
+
+        foreach ($externalCommunicationPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $communicationRisks['external_communication'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // Inter-process communication detection
+        $ipcPatterns = [
+            'shared_memory' => '/\b(?:shmop_open|ftok|shmget)\s*\(/i',
+            'message_queues' => '/\b(?:msg_send|msg_receive|msg_get_queue)\s*\(/i',
+            'process_signals' => '/\b(?:posix_kill|pcntl_signal)\s*\(/i',
+            'pipes_and_sockets' => '/\b(?:popen|proc_open|stream_socket_pair)\s*\(/i',
+            'named_pipes' => '/\b(?:fifo|mkfifo)\b/i'
+        ];
+
+        foreach ($ipcPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $communicationRisks['inter_process_communication'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // Advanced communication channel detection
+        $advancedChannelPatterns = [
+            'unix_domain_sockets' => '/\b(?:AF_UNIX|PF_UNIX)\b/i',
+            'network_ipc' => '/\b(?:TCP|UDP|socket\(\))\b/i',
+            'rpc_mechanisms' => '/\b(?:XML-RPC|JSON-RPC|gRPC)\b/i'
+        ];
+
+        foreach ($advancedChannelPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $communicationRisks['inter_process_communication'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        return array_filter($communicationRisks);
+    }
+
+    private function analyzeStorageOperations($html)
+    {
+        $storageRisks = [
+            'persistent_storage' => [],
+            'caching_mechanisms' => [],
+            'data_persistence' => []
+        ];
+
+        // Persistent storage detection
+        $persistentStoragePatterns = [
+            'file_storage' => '/\b(?:file_put_contents|fwrite|file_append)\s*\(/i',
+            'serialization' => '/\b(?:serialize|unserialize)\s*\(/i',
+            'database_storage' => '/\b(?:INSERT|UPDATE)\s+INTO\s+\w+\b/i'
+        ];
+
+        foreach ($persistentStoragePatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $storageRisks['persistent_storage'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // Caching mechanisms detection
+        $cachingPatterns = [
+            'memory_cache' => '/\b(?:memcache_set|redis_set)\s*\(/i',
+            'session_storage' => '/\b(?:$_SESSION\[|session_start\(\))\b/i',
+            'local_storage' => '/\b(?:localStorage\.setItem|sessionStorage\.setItem)\b/i'
+        ];
+
+        foreach ($cachingPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $storageRisks['caching_mechanisms'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // Data persistence techniques
+        $persistencePatterns = [
+            'cookie_storage' => '/\b(?:setcookie|$_COOKIE)\b/i',
+            'permanent_storage' => '/\b(?:IndexedDB|WebSQL|localStorage)\b/i',
+            'state_management' => '/\b(?:setState|dispatch|reducer)\b/i'
+        ];
+
+        foreach ($persistencePatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $storageRisks['data_persistence'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        return array_filter($storageRisks);
+    }
+
+    private function analyzeDataContext($html)
+    {
+        $contextRisks = [
+            'data_origin' => [],
+            'transmission_methods' => [],
+            'context_leakage' => []
+        ];
+
+        // Data origin and source tracking
+        $originPatterns = [
+            'user_input_sources' => '/\$_(?:GET|POST|REQUEST|COOKIE|FILES)\[/i',
+            'server_variables' => '/\$_SERVER\[[\'"][^\'"]+[\'"]\]/i',
+            'environment_vars' => '/\$_ENV\[[\'"][^\'"]+[\'"]\]/i'
+        ];
+
+        foreach ($originPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $contextRisks['data_origin'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // Data transmission and flow detection
+        $transmissionPatterns = [
+            'data_binding' => '/\b(?:bind|map|reduce)\s*\(/i',
+            'data_transformation' => '/\b(?:filter|transform|convert)\s*\(/i',
+            'stream_processing' => '/\b(?:pipe|stream|buffer)\b/i'
+        ];
+
+        foreach ($transmissionPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $contextRisks['transmission_methods'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // Potential context information leakage
+        $leakagePatterns = [
+            'debug_info' => '/\b(?:var_dump|print_r|debug_backtrace)\s*\(/i',
+            'error_exposure' => '/\b(?:error_reporting|display_errors)\s*\(/i',
+            'sensitive_context' => '/\b(?:phpinfo|get_defined_vars)\s*\(/i',
+            'configuration_leak' => '/\b(?:ini_get|get_cfg_var)\s*\(/i'
+        ];
+
+        foreach ($leakagePatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $contextRisks['context_leakage'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        return array_filter($contextRisks);
+    }
+
+    private function enhancedSecurityHeaderCheck($html)
+    {
+        $headerRisks = [
+            'missing_headers' => [],
+            'insecure_headers' => [],
+            'header_disclosure' => []
+        ];
+
+        // Check for security headers in meta tags
+        $securityHeaders = [
+            'X-Frame-Options',
+            'X-XSS-Protection',
+            'X-Content-Type-Options',
+            'Content-Security-Policy',
+            'Strict-Transport-Security',
+            'Referrer-Policy'
+        ];
+
+        foreach ($securityHeaders as $header) {
+            if (!preg_match('/<meta[^>]+http-equiv=[\'"]' . preg_quote($header) . '[\'"][^>]*>/i', $html)) {
+                $headerRisks['missing_headers'][] = $header;
+            }
+        }
+
+        // Check for potentially insecure header values
+        if (preg_match_all('/<meta[^>]+http-equiv=[\'"]([^\'"]+)[\'"][^>]+content=[\'"]([^\'"]+)[\'"][^>]*>/i', $html, $matches)) {
+            foreach ($matches[1] as $index => $header) {
+                $content = $matches[2][$index];
+                if (!$this->isSecureHeaderValue($header, $content)) {
+                    $headerRisks['insecure_headers'][] = [
+                        'header' => $header,
+                        'value' => $content
+                    ];
+                }
+            }
+        }
+
+        // Check for server information disclosure
+        if (preg_match('/<meta[^>]+name=[\'"]generator[\'"][^>]+content=[\'"]([^\'"]+)[\'"][^>]*>/i', $html, $match)) {
+            $headerRisks['header_disclosure'][] = $match[1];
+        }
+
+        return array_filter($headerRisks);
+    }
+
+    // Fix missing analyzeDynamicExecution function
+    private function analyzeDynamicExecution($html)
+    {
+        $risks = [
+            'dynamic_code' => [],
+            'eval_usage' => [],
+            'runtime_includes' => []
+        ];
+
+        // Check for dynamic code execution
+        $codePatterns = [
+            'eval_usage' => '/\beval\s*\([^)]+\)/',
+            'create_function' => '/\bcreate_function\s*\([^)]+\)/',
+            'callable_execution' => '/\bcall_user_func(?:_array)?\s*\([^)]+\)/',
+            'dynamic_includes' => '/include(?:_once)?\s*\([^)]*\$[^)]+\)/',
+            'variable_functions' => '/\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]\s\([^)]*\)/'
+        ];
+
+        foreach ($codePatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $risks['dynamic_code'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // Check for runtime code modification
+        $runtimePatterns = [
+            'register_shutdown_function' => '/\bregister_shutdown_function\s*\([^)]+\)/',
+            'register_tick_function' => '/\bregister_tick_function\s*\([^)]+\)/',
+            'spl_autoload_register' => '/\bspl_autoload_register\s*\([^)]+\)/',
+        ];
+
+        foreach ($runtimePatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $risks['runtime_includes'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        return array_filter($risks);
+    }
+
+
+
 
     private function analyzeHeaders(array $headers)
     {
@@ -989,7 +1383,7 @@ class BackdoorDetectionService
             'api_keys' => [
                 '/[\'"](?:[a-zA-Z0-9_-]{20,40})[\'"]/', // Generic API key pattern
                 '/(?:api|key|token|secret)[\'"]\s*(?::|=>|=)\s*[\'"][a-zA-Z0-9_-]{20,}[\'"]/i',
-                '/(?:sk|pk)_(?:test|live)_[0-9a-zA-Z]{24,}/' // Payment provider API keys
+                '/(?:sk|pk)(?:test|live)[0-9a-zA-Z]{24,}/' // Payment provider API keys
             ],
             'credentials' => [
                 '/(?:password|passwd|pwd)[\'"]\s*(?::|=>|=)\s*[\'"][^\'"\s]+[\'"]/i',
@@ -1004,7 +1398,7 @@ class BackdoorDetectionService
             'authentication' => [
                 '/(?:bearer|token|auth)\s+[a-zA-Z0-9_-]{20,}/',
                 '/(?:jwt|authorization)[\'"]\s*(?::|=>|=)\s*[\'"][a-zA-Z0-9._-]{20,}[\'"]/i',
-                '/eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+/' // JWT pattern
+                '/eyJ[A-Za-z0-9-]+\.eyJ[A-Za-z0-9-]+\.[A-Za-z0-9-_]+/' // JWT pattern
             ],
             'cryptographic' => [
                 '/(?:ssh-rsa|ssh-dss)\s+[A-Za-z0-9+\/]+[=]{0,2}/',
@@ -1032,33 +1426,6 @@ class BackdoorDetectionService
 
         return $sensitiveData;
     }
-
-    // private function isLikelySensitiveData($value)
-    // {
-    //     // Common test/example values to exclude
-    //     $exclusions = [
-    //         'example',
-    //         'test',
-    //         'sample',
-    //         'demo',
-    //         'dummy',
-    //         'username',
-    //         'password',
-    //         'user@example.com',
-    //         '123-45-6789',
-    //         '123.456.7890'
-    //     ];
-
-    //     foreach ($exclusions as $exclusion) {
-    //         if (stripos($value, $exclusion) !== false) {
-    //             return false;
-    //         }
-    //     }
-
-    //     // Minimum entropy check for potential sensitive data
-    //     $entropy = $this->calculateStringEntropy($value);
-    //     return strlen($value) > 8 && $entropy > 3.0;
-    // }
 
     private function isLikelySensitiveData($value)
     {
@@ -1151,27 +1518,33 @@ class BackdoorDetectionService
         $totalWeight = 0;
         $maxWeight = 0;
         $riskCategories = 0;
+        $severityMultipliers = [
+            'critical' => 2.0,
+            'high' => 1.5,
+            'medium' => 1.0,
+            'low' => 0.5
+        ];
 
         foreach ($risks as $category => $findings) {
-            // Pastikan kategori risiko ada dalam bobot
             if (isset($this->riskWeights[$category])) {
                 $weight = $this->riskWeights[$category];
+                $findingsCount = $this->countValidFindings($findings);
 
-                // Hitung jumlah temuan yang valid
-                $findingsCount = is_array($findings) ?
-                    count(array_filter($findings, function ($finding) {
-                        // Filter temuan yang memiliki konten
-                        return !empty($finding) &&
-                            (is_array($finding) ? count($finding) > 0 : strlen(trim($finding)) > 0);
-                    })) : ($findings ? 1 : 0);
+                // Enhanced severity calculation with pattern recognition
+                $patternSeverity = $this->calculatePatternSeverity($findings);
+                $contextualRisk = $this->assessContextualRisk($category, $findings);
 
-                // Bobot bertambah dengan logaritma jumlah temuan
-                $logarithmicWeight = $weight * log($findingsCount + 1, 2);
+                // Logarithmic scaling with base adjustment
+                $baseLog = max(2, log($findingsCount + 1, 2));
+                $adjustedWeight = $weight * $baseLog;
 
-                $totalWeight += $logarithmicWeight;
+                // Apply severity multipliers
+                $severityMultiplier = $severityMultipliers[$patternSeverity] ?? 1.0;
+                $finalWeight = $adjustedWeight * $severityMultiplier * (1 + $contextualRisk);
+
+                $totalWeight += $finalWeight;
                 $maxWeight = max($maxWeight, $weight);
 
-                // Hitung kategori risiko unik
                 if ($findingsCount > 0) {
                     $riskCategories++;
                 }
@@ -1181,9 +1554,172 @@ class BackdoorDetectionService
         return [
             'score' => round($totalWeight, 2),
             'max_weight' => $maxWeight,
-            'risk_categories' => $riskCategories
+            'risk_categories' => $riskCategories,
+            // Tambahkan pengecekan untuk mencegah division by zero
+            'normalized_score' => $maxWeight > 0
+                ? min(100, round(($totalWeight / ($maxWeight * 3)) * 100, 2))
+                : 0
         ];
     }
+
+    private function calculatePatternSeverity($findings)
+    {
+        // Pastikan $findings adalah array
+        if (!is_array($findings)) {
+            $findings = [$findings];
+        }
+
+        $criticalPatterns = [
+            '/(?:system|exec|shell_exec|passthru|eval)\s*\(/',
+            '/(?:base64_decode|str_rot13|gzinflate)\s*\(.*\$/',
+            '/\b(?:phpinfo|get_current_user|getcwd)\s*\(\)/',
+        ];
+
+        $highPatterns = [
+            '/(?:file_get_contents|file_put_contents|fopen)\s*\(/',
+            '/\$_(?:GET|POST|REQUEST|COOKIE)\[/',
+            '/(?:chmod|chown|chgrp)\s*\(/',
+        ];
+
+        $mediumPatterns = [
+            '/(?:include|require)(?:_once)?\s*\(/',
+            '/mysql_query|mysqli_query|PDO::query/',
+            '/move_uploaded_file\s*\(/',
+        ];
+
+        // Gabungkan semua pola untuk pencarian
+        $allPatterns = array_merge($criticalPatterns, $highPatterns, $mediumPatterns);
+
+        // Periksa apakah ada pola yang cocok dalam temuan
+        foreach ($allPatterns as $pattern) {
+            foreach ($findings as $finding) {
+                if (is_array($finding)) {
+                    // Jika $finding adalah array, cek setiap elemennya
+                    foreach ($finding as $item) {
+                        if (preg_match($pattern, (string)$item)) {
+                            // Tentukan tingkat risiko berdasarkan pola
+                            if (in_array($pattern, $criticalPatterns)) return 'critical';
+                            if (in_array($pattern, $highPatterns)) return 'high';
+                            if (in_array($pattern, $mediumPatterns)) return 'medium';
+                        }
+                    }
+                } else {
+                    // Jika $finding bukan array
+                    if (preg_match($pattern, (string)$finding)) {
+                        // Tentukan tingkat risiko berdasarkan pola
+                        if (in_array($pattern, $criticalPatterns)) return 'critical';
+                        if (in_array($pattern, $highPatterns)) return 'high';
+                        if (in_array($pattern, $mediumPatterns)) return 'medium';
+                    }
+                }
+            }
+        }
+
+        // Kembalikan 'low' jika tidak ada pola yang cocok
+        return 'low';
+    }
+    private function assessContextualRisk($category, $findings)
+    {
+        $contextScore = 0;
+
+        // Risk patterns with weights
+        $riskPatterns = [
+            // Critical context patterns
+            '/(?:admin|root|sudo)\b/i' => 0.4,
+            '/(?:password|passwd|pwd)\b/i' => 0.35,
+            '/(?:bash|sh|cmd|powershell)\b/i' => 0.45,
+
+            // High risk context patterns
+            '/(?:wget|curl|fetch)\b/i' => 0.3,
+            '/(?:chmod|chown)\s+[0-7]{3,4}/i' => 0.35,
+            '/(?:nc|netcat|ncat)\b/i' => 0.4,
+
+            // Medium risk context patterns
+            '/(?:base64|rot13|hex)\b/i' => 0.25,
+            '/(?:cron|scheduled|task)\b/i' => 0.2,
+            '/(?:backdoor|exploit|hack)/i' => 0.3,
+
+            // Network related patterns
+            '/(?:\d{1,3}\.){3}\d{1,3}/' => 0.25,
+            '/(?:http|ftp|sftp):\/\// ' => 0.2,
+        ];
+
+        $foundPatterns = [];
+        foreach ($riskPatterns as $pattern => $weight) {
+            if ($this->findContextualPattern($pattern, $findings)) {
+                $contextScore += $weight;
+                $foundPatterns[] = $pattern;
+            }
+        }
+
+        // Additional context-based risk factors
+        $contextScore *= (1 + $this->calculatePatternDensity($findings));
+        $contextScore *= (1 + $this->calculateEntropyFactor($findings));
+
+        // Category-specific adjustments
+        $categoryMultipliers = [
+            'potential_rce' => 1.5,
+            'file_manipulation' => 1.3,
+            'suspicious_endpoints' => 1.2,
+            'obfuscation' => 1.4,
+            'information_disclosure' => 1.1
+        ];
+
+        if (isset($categoryMultipliers[$category])) {
+            $contextScore *= $categoryMultipliers[$category];
+        }
+
+        return min(1.0, $contextScore);
+    }
+
+    private function findContextualPattern($pattern, $findings)
+    {
+        if (is_array($findings)) {
+            foreach ($findings as $finding) {
+                if ($this->findContextualPattern($pattern, $finding)) return true;
+            }
+            return false;
+        }
+        return preg_match($pattern, (string)$findings);
+    }
+
+    private function calculatePatternDensity($findings)
+    {
+        $content = $this->flattenFindings($findings);
+        $totalLength = strlen($content);
+        if ($totalLength === 0) return 0;
+
+        $patternMatches = preg_match_all('/(?:eval|system|exec|base64|http|ftp|wget|curl)/i', $content, $matches);
+        return $patternMatches / max(1, $totalLength / 100);
+    }
+
+    private function calculateEntropyFactor($findings)
+    {
+        $content = $this->flattenFindings($findings);
+        $frequencies = array_count_values(str_split($content));
+        $entropy = 0;
+        $length = strlen($content);
+
+        if ($length === 0) return 0;
+
+        foreach ($frequencies as $count) {
+            $probability = $count / $length;
+            $entropy -= $probability * log($probability, 2);
+        }
+
+        // Normalize entropy to 0-1 range (typical entropy ranges from 0 to about 8)
+        return min(1.0, $entropy / 8.0);
+    }
+
+    private function flattenFindings($findings)
+    {
+        if (!is_array($findings)) {
+            return (string)$findings;
+        }
+
+        return implode(' ', array_map([$this, 'flattenFindings'], $findings));
+    }
+
 
     private function calculateConfidence($risks)
     {
@@ -1191,62 +1727,33 @@ class BackdoorDetectionService
 
         $confidenceFactors = [];
         $uniquePatterns = [];
+        $totalPatterns = 0;
 
         foreach ($risks as $category => $findings) {
             if (is_array($findings)) {
                 try {
-                    // Analisis kompleksitas dan keunikan
-                    $categoryConfidence = 0;
-                    $categoryPatterns = [];
-
-                    foreach ($findings as $finding) {
-                        // Konversi temuan ke string untuk hash
-                        $patternStr = is_array($finding) ? json_encode($finding) : (string)$finding;
-                        $hash = md5($patternStr);
-
-                        // Ukur keunikan dan kompleksitas
-                        if (!in_array($hash, $uniquePatterns)) {
-                            $uniquePatterns[] = $hash;
-                            $categoryPatterns[] = $patternStr;
-
-                            // Berikan bobot tambahan untuk pola kompleks
-                            $complexityBonus = strlen($patternStr) > 50 ? 1.5 : 1;
-                            $categoryConfidence += $complexityBonus;
-                        }
-                    }
-
-                    // Normalisasi kepercayaan kategori
-                    $categoryConfidenceNormalized = min(
-                        100,
-                        round(($categoryConfidence / max(1, count($findings))) * 100, 2)
-                    );
+                    $categoryConfidence = $this->calculateCategoryConfidence($findings);
+                    $patternComplexity = $this->calculatePatternComplexity($findings);
+                    $consistencyScore = $this->calculateConsistencyScore($findings);
 
                     $confidenceFactors[$category] = [
-                        'confidence' => $categoryConfidenceNormalized,
-                        'unique_patterns' => count($categoryPatterns)
+                        'base_confidence' => $categoryConfidence,
+                        'pattern_complexity' => $patternComplexity,
+                        'consistency_score' => $consistencyScore,
+                        'unique_patterns' => count($uniquePatterns) - $totalPatterns
                     ];
+
+                    $totalPatterns = count($uniquePatterns);
                 } catch (\Exception $e) {
                     Log::warning("Confidence calculation error in $category: " . $e->getMessage());
                 }
             }
         }
 
-        // Hitung kepercayaan akhir dengan pembobotan
-        $totalConfidence = 0;
-        $totalWeight = 0;
-
-        foreach ($confidenceFactors as $category => $data) {
-            // Berikan bobot tambahan untuk kategori dengan banyak pola unik
-            $categoryWeight = $this->riskWeights[$category] ?? 1;
-            $uniquePatternBonus = log($data['unique_patterns'] + 1, 2);
-
-            $totalConfidence += $data['confidence'] * $categoryWeight * $uniquePatternBonus;
-            $totalWeight += $categoryWeight;
-        }
-
-        return $totalWeight > 0 ?
-            min(100, round($totalConfidence / $totalWeight, 2)) : 0;
+        return $this->aggregateConfidenceScores($confidenceFactors);
     }
+
+
 
 
     private function calculateRiskMetrics($consolidatedRisks)
@@ -1424,395 +1931,614 @@ class BackdoorDetectionService
         return round(($severity * 0.7) + ($confidence * 0.3));
     }
 
-    private function performDeepAnalysis($html, $url)
+    private function calculateCategoryConfidence($findings)
     {
-        $analysis = [
-            'network_indicators' => $this->analyzeNetworkIndicators($html),
-            'code_patterns' => $this->analyzeCodePatterns($html),
-            'behavioral_analysis' => $this->analyzeBehavioralPatterns($html),
-            'context_analysis' => $this->analyzeContext($html, $url)
-        ];
+        // Base confidence pada diversitas dan kuantitas findings
+        $uniquePatterns = [];
+        $totalFindings = 0;
+        $weightedConfidence = 0;
 
-        return $this->correlateFindings($analysis);
-    }
-
-    private function correlateFindings($analysis)
-    {
-        $correlatedResults = [];
-        $threatScore = 0;
-        $confidenceScore = 0;
-
-        // Weight factors for different types of findings
-        $weights = [
-            'network_indicators' => 0.8,
-            'code_patterns' => 0.9,
-            'behavioral_analysis' => 0.7,
-            'context_analysis' => 0.6
-        ];
-
-        foreach ($analysis as $category => $findings) {
-            if (!empty($findings)) {
-                $categoryWeight = $weights[$category] ?? 0.5;
-                $findingCount = $this->countFindings($findings);
-
-                $threatScore += $findingCount * $categoryWeight;
-
-                // Calculate confidence based on correlation between different categories
-                $correlatedResults[$category] = [
-                    'findings' => $findings,
-                    'count' => $findingCount,
-                    'weight' => $categoryWeight,
-                    'confidence' => $this->calculateCategoryConfidence($findings)
-                ];
+        $extractedPatterns = $this->extractPatterns($findings);
+        foreach ($extractedPatterns as $pattern) {
+            $hash = md5($pattern);
+            if (!in_array($hash, $uniquePatterns)) {
+                $uniquePatterns[] = $hash;
+                $patternWeight = $this->calculatePatternWeight($pattern);
+                $weightedConfidence += $patternWeight;
+                $totalFindings++;
             }
         }
 
-        // Calculate overall confidence score
-        $confidenceScore = $this->calculateOverallConfidence($correlatedResults);
-
-        return [
-            'correlated_findings' => $correlatedResults,
-            'threat_score' => min(100, $threatScore),
-            'confidence_score' => $confidenceScore,
-            'correlation_summary' => $this->generateCorrelationSummary($correlatedResults)
+        return $totalFindings > 0 ? ($weightedConfidence / $totalFindings) * 100 : 0;
+    }
+    private function calculatePatternWeight($pattern)
+    {
+        $weights = [
+            'complexity' => $this->getPatternComplexity($pattern),
+            'uniqueness' => $this->getPatternUniqueness($pattern),
+            'context' => $this->getContextRelevance($pattern)
         ];
+
+        return array_sum($weights) / count($weights);
     }
 
-    private function countFindings($findings)
+    private function getPatternComplexity($pattern)
     {
+        $factors = [
+            'length' => strlen($pattern) / 100, // Normalized by 100
+            'special_chars' => preg_match_all('/[^a-zA-Z0-9\s]/', $pattern) / 10,
+            'structure' => preg_match_all('/[\(\)\[\]\{\}]/', $pattern) / 5
+        ];
+
+        return min(1.0, array_sum($factors) / count($factors));
+    }
+
+    private function getPatternUniqueness($pattern)
+    {
+        // Measure pattern entropy as a proxy for uniqueness
+        $entropy = 0;
+        $frequencies = array_count_values(str_split($pattern));
+        $length = strlen($pattern);
+
+        foreach ($frequencies as $count) {
+            $probability = $count / $length;
+            $entropy -= $probability * log($probability, 2);
+        }
+
+        return min(1.0, $entropy / 8.0); // Normalize to 0-1
+    }
+
+    private function getContextRelevance($pattern)
+    {
+        $relevancePatterns = [
+            '/(?:eval|system|exec)/i' => 1.0,
+            '/(?:base64|rot13)/i' => 0.8,
+            '/(?:http|ftp|file)/i' => 0.6,
+            '/(?:password|user|admin)/i' => 0.7
+        ];
+
+        $maxRelevance = 0;
+        foreach ($relevancePatterns as $relevancePattern => $weight) {
+            if (preg_match($relevancePattern, $pattern)) {
+                $maxRelevance = max($maxRelevance, $weight);
+            }
+        }
+
+        return $maxRelevance;
+    }
+
+    private function calculatePatternComplexity($findings)
+    {
+        $patterns = $this->extractPatterns($findings);
+        if (empty($patterns)) return 0;
+
+        $complexityScores = array_map(function ($pattern) {
+            return $this->getPatternComplexity($pattern);
+        }, $patterns);
+
+        return array_sum($complexityScores) / count($complexityScores);
+    }
+
+    private function calculateConsistencyScore($findings)
+    {
+        $patterns = $this->extractPatterns($findings);
+        if (count($patterns) < 2) return 1.0;
+
+        $similarities = [];
+        for ($i = 0; $i < count($patterns); $i++) {
+            for ($j = $i + 1; $j < count($patterns); $j++) {
+                $similarities[] = $this->calculatePatternSimilarity($patterns[$i], $patterns[$j]);
+            }
+        }
+
+        return array_sum($similarities) / count($similarities);
+    }
+
+    private function calculatePatternSimilarity($pattern1, $pattern2)
+    {
+        $length1 = strlen($pattern1);
+        $length2 = strlen($pattern2);
+
+        if ($length1 === 0 || $length2 === 0) return 0;
+
+        $levenshtein = levenshtein($pattern1, $pattern2);
+        $maxLength = max($length1, $length2);
+
+        return 1 - ($levenshtein / $maxLength);
+    }
+
+    private function extractPatterns($findings)
+    {
+        $patterns = [];
+
+        if (is_array($findings)) {
+            foreach ($findings as $finding) {
+                if (is_array($finding)) {
+                    $patterns = array_merge($patterns, $this->extractPatterns($finding));
+                } else {
+                    $patterns[] = (string)$finding;
+                }
+            }
+        } else {
+            $patterns[] = (string)$findings;
+        }
+
+        return array_filter($patterns, 'strlen');
+    }
+
+    private function aggregateConfidenceScores($confidenceFactors)
+    {
+        if (empty($confidenceFactors)) return 0;
+
+        $aggregatedScore = 0;
+        $totalWeight = 0;
+
+        foreach ($confidenceFactors as $category => $factors) {
+            $categoryWeight = $this->riskWeights[$category] ?? 1;
+
+            $compositeScore = (
+                $factors['base_confidence'] * 0.4 +
+                $factors['pattern_complexity'] * 100 * 0.3 +
+                $factors['consistency_score'] * 100 * 0.3
+            );
+
+            $patternBonus = log($factors['unique_patterns'] + 1, 2) * 0.1;
+            $finalScore = min(100, $compositeScore * (1 + $patternBonus));
+
+            $aggregatedScore += $finalScore * $categoryWeight;
+            $totalWeight += $categoryWeight;
+        }
+
+        return $totalWeight > 0 ? round($aggregatedScore / $totalWeight, 2) : 0;
+    }
+
+
+
+    private function enhancedScriptAnalysis(Crawler $crawler)
+    {
+        $scriptRisks = [
+            'inline_scripts' => [],
+            'external_scripts' => [],
+            'dangerous_patterns' => [],
+            'obfuscation_attempts' => [],
+            'event_handlers' => []
+        ];
+
+        $crawler->filter('script')->each(function ($node) use (&$scriptRisks) {
+            $content = $node->attr('src') ?? $node->text();
+            $href = $node->attr('src');
+
+            // Analisis skrip inline
+            if (!$href) {
+                $this->analyzeInlineScript($content, $scriptRisks);
+            } else {
+                $this->analyzeExternalScript($href, $scriptRisks);
+            }
+        });
+
+        // Analisis event handler untuk semua elemen
+        $crawler->filter('*[onclick], *[onload], *[onmouseover], *[onfocus]')->each(
+            function ($node) use (&$scriptRisks) {
+                $this->analyzeEventHandlers($node, $scriptRisks);
+            }
+        );
+
+        return array_filter($scriptRisks);
+    }
+    private function analyzeInlineScript($content, &$scriptRisks)
+    {
+        $dangerousPatterns = [
+            'eval_usage' => '/\beval\s*\([^)]*\)/',
+            'document_write' => '/\bdocument\.write\s*\(/',
+            'innerHTML_usage' => '/\.innerHTML\s*=/',
+            'storage_access' => '/\b(?:localStorage|sessionStorage)\b/',
+            'cookie_manipulation' => '/\bdocument\.cookie\b/',
+            'dynamic_script' => '/\bdocument\.createElement\s*\(\s*[\'"]script[\'"]\s*\)/',
+            'base64_usage' => '/\batob\s*\(|\bbtoa\s*\(/',
+            'script_injection' => '/\.src\s*=/',
+            'domain_access' => '/\b(?:domain|subdomain|hostname)\b/',
+            'window_manipulation' => '/\bwindow\.(?:open|location|history)\b/'
+        ];
+
+        foreach ($dangerousPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $content, $matches)) {
+                $scriptRisks['dangerous_patterns'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // Check for obfuscation
+        $obfuscationIndicators = [
+            'string_concat' => '/[\'"]\s*\+\s*[\'"]/',
+            'char_code' => '/String\.fromCharCode|charCodeAt/',
+            'hex_encoding' => '/\\\\x[0-9a-fA-F]{2}/',
+            'unicode_escape' => '/\\\\u[0-9a-fA-F]{4}/',
+            'excessive_escape' => '/\\\\{2,}/',
+            'packed_code' => '/eval\(function\(p,a,c,k,e,(?:r|d)?\)/',
+            'suspicious_arrays' => '/\[[^\]]+\]\.join\s*\(\s*[\'"][\'"]?\s*\)/'
+        ];
+
+        foreach ($obfuscationIndicators as $type => $pattern) {
+            if (preg_match_all($pattern, $content, $matches)) {
+                $scriptRisks['obfuscation_attempts'][$type] = array_unique($matches[0]);
+            }
+        }
+
+        // Entropy analysis for potential obfuscation
+        if ($this->calculateScriptEntropy($content) > 5.0) {
+            $scriptRisks['obfuscation_attempts']['high_entropy'] = true;
+        }
+    }
+
+    private function analyzeExternalScript($src, &$scriptRisks)
+    {
+        $suspiciousPatterns = [
+            'non_https' => '/^(?!https:)/',
+            'dynamic_script' => '/\.(php|asp|jsp)\b/i',
+            'suspicious_domain' => '/(?:pastebin\.com|raw\.githubusercontent\.com)/i',
+            'ip_address' => '/^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/',
+            'suspicious_params' => '/\?.*(?:eval|exec|system|cmd|shell)=/',
+            'data_uri' => '/^data:/',
+            'relative_path' => '/^(?!https?:\/\/)/',
+        ];
+
+        foreach ($suspiciousPatterns as $type => $pattern) {
+            if (preg_match($pattern, $src)) {
+                $scriptRisks['external_scripts'][$type][] = $src;
+            }
+        }
+
+        // Additional domain analysis
+        $domain = parse_url($src, PHP_URL_HOST);
+        if ($domain) {
+            $this->analyzeDomainReputation($domain, $scriptRisks);
+        }
+    }
+
+
+    // Fix untuk fungsi countValidFindings yang hilang
+    private function countValidFindings($findings)
+    {
+        if (!is_array($findings)) {
+            return !empty($findings) ? 1 : 0;
+        }
+
         $count = 0;
         foreach ($findings as $finding) {
             if (is_array($finding)) {
-                $count += $this->countFindings($finding);
+                $count += $this->countValidFindings($finding);
             } else {
-                $count++;
+                $count += !empty(trim((string)$finding)) ? 1 : 0;
             }
         }
         return $count;
     }
 
-    private function calculateCategoryConfidence($findings)
+    // Fix untuk fungsi enhancedFormAnalysis yang hilang
+    private function enhancedFormAnalysis(Crawler $crawler)
     {
-        // Base confidence on the diversity and quantity of findings
-        $uniquePatterns = 0;
-        $totalFindings = 0;
+        $formRisks = [
+            'insecure_forms' => [],
+            'file_uploads' => [],
+            'sensitive_inputs' => [],
+            'csrf_protection' => []
+        ];
 
-        foreach ($findings as $type => $items) {
-            if (is_array($items)) {
-                $uniquePatterns += count(array_unique($items));
-                $totalFindings += count($items);
+        $crawler->filter('form')->each(function ($node) use (&$formRisks) {
+            $action = $node->attr('action');
+            $method = strtoupper($node->attr('method') ?? 'GET');
+
+            // Check for insecure form submission
+            if ($action && !preg_match('/^https:/', $action)) {
+                $formRisks['insecure_forms'][] = [
+                    'action' => $action,
+                    'method' => $method
+                ];
+            }
+
+            // Check file upload capabilities
+            $node->filter('input[type="file"]')->each(function ($input) use (&$formRisks) {
+                $formRisks['file_uploads'][] = [
+                    'name' => $input->attr('name'),
+                    'accept' => $input->attr('accept')
+                ];
+            });
+
+            // Check for sensitive inputs
+            $node->filter('input')->each(function ($input) use (&$formRisks) {
+                $type = $input->attr('type');
+                $name = $input->attr('name');
+                if (
+                    in_array($type, ['password', 'hidden']) ||
+                    preg_match('/(password|token|key|secret)/i', $name)
+                ) {
+                    $formRisks['sensitive_inputs'][] = [
+                        'type' => $type,
+                        'name' => $name
+                    ];
+                }
+            });
+
+            // Check CSRF protection
+            if (!$node->filter('input[name="_token"]')->count()) {
+                $formRisks['csrf_protection'][] = [
+                    'action' => $action,
+                    'has_protection' => false
+                ];
+            }
+        });
+
+        return array_filter($formRisks);
+    }
+
+    // Fix untuk fungsi enhancedIframeAnalysis yang hilang
+    private function enhancedIframeAnalysis(Crawler $crawler)
+    {
+        $iframeRisks = [
+            'insecure_sources' => [],
+            'suspicious_content' => [],
+            'sandbox_inspection' => []
+        ];
+
+        $crawler->filter('iframe')->each(function ($node) use (&$iframeRisks) {
+            $src = $node->attr('src');
+            $sandbox = $node->attr('sandbox');
+
+            if ($src) {
+                // Check for insecure sources
+                if (!preg_match('/^https:/', $src)) {
+                    $iframeRisks['insecure_sources'][] = $src;
+                }
+
+                // Check for suspicious content
+                if (preg_match('/(data|javascript|file):/i', $src)) {
+                    $iframeRisks['suspicious_content'][] = [
+                        'src' => $src,
+                        'type' => 'suspicious_protocol'
+                    ];
+                }
+            }
+
+            // Analyze sandbox attributes
+            $iframeRisks['sandbox_inspection'][] = [
+                'has_sandbox' => !empty($sandbox),
+                'sandbox_value' => $sandbox,
+                'src' => $src
+            ];
+        });
+
+        return array_filter($iframeRisks);
+    }
+
+    // Fix untuk fungsi enhancedMetaAnalysis yang hilang
+    private function enhancedMetaAnalysis(Crawler $crawler)
+    {
+        $metaRisks = [
+            'security_headers' => [],
+            'content_policies' => [],
+            'suspicious_content' => []
+        ];
+
+        $crawler->filter('meta')->each(function ($node) use (&$metaRisks) {
+            $httpEquiv = $node->attr('http-equiv');
+            $content = $node->attr('content');
+            $name = $node->attr('name');
+
+            if ($httpEquiv) {
+                $this->analyzeSecurityHeader($httpEquiv, $content, $metaRisks);
+            }
+
+            if ($content && preg_match('/(php|asp|jsp|cgi|eval|exec)/i', $content)) {
+                $metaRisks['suspicious_content'][] = [
+                    'name' => $name ?? $httpEquiv,
+                    'content' => $content
+                ];
+            }
+        });
+
+        return array_filter($metaRisks);
+    }
+
+    private function enhancedCommentAnalysis(Crawler $crawler)
+    {
+        $commentRisks = [
+            'sensitive_data' => [],
+            'debug_info' => [],
+            'suspicious_content' => []
+        ];
+
+        preg_match_all('/<!--(.*?)-->/s', $crawler->html(), $matches);
+
+        foreach ($matches[1] as $comment) {
+            // Check for sensitive data
+            if (preg_match('/(password|user|admin|key|token|secret)/i', $comment)) {
+                $commentRisks['sensitive_data'][] = $this->sanitizeComment($comment);
+            }
+
+            // Check for debug information
+            if (preg_match('/(todo|fixme|hack|debug|test)/i', $comment)) {
+                $commentRisks['debug_info'][] = $this->sanitizeComment($comment);
+            }
+
+            // Check for suspicious content
+            if (preg_match('/(backdoor|exploit|bypass|inject)/i', $comment)) {
+                $commentRisks['suspicious_content'][] = $this->sanitizeComment($comment);
             }
         }
 
-        if ($totalFindings === 0) return 0;
-
-        // Calculate confidence score (0-100)
-        $diversity = $uniquePatterns / max(1, $totalFindings);
-        return min(100, round($diversity * 100));
+        return array_filter($commentRisks);
     }
 
-    private function calculateOverallConfidence($correlatedResults)
+    // Helper function untuk sanitize comment
+    private function sanitizeComment($comment)
     {
-        $weightedConfidence = 0;
-        $totalWeight = 0;
+        return [
+            'content' => trim($comment),
+            'length' => strlen($comment),
+            'entropy' => $this->calculateStringEntropy($comment)
+        ];
+    }
 
-        foreach ($correlatedResults as $category => $result) {
-            $weightedConfidence += $result['confidence'] * $result['weight'];
-            $totalWeight += $result['weight'];
+    // Fix untuk fungsi enhancedInputValidation yang hilang
+    private function enhancedInputValidation($html)
+    {
+        $validationRisks = [
+            'unfiltered_inputs' => [],
+            'unsafe_assignments' => [],
+            'validation_bypass' => []
+        ];
+
+        // Check unfiltered inputs
+        $inputPatterns = [
+            'GET' => '\$_GET',
+            'POST' => '\$_POST',
+            'REQUEST' => '\$_REQUEST',
+            'COOKIE' => '\$_COOKIE'
+        ];
+
+        foreach ($inputPatterns as $type => $pattern) {
+            if (preg_match_all('/' . $pattern . '\s*\[\s*([^\]]+)\s*\]/', $html, $matches)) {
+                foreach ($matches[1] as $variable) {
+                    $validationRisks['unfiltered_inputs'][] = [
+                        'type' => $type,
+                        'variable' => $variable
+                    ];
+                }
+            }
         }
 
-        return $totalWeight > 0 ? round($weightedConfidence / $totalWeight) : 0;
+        // Check unsafe direct assignments
+        if (preg_match_all('/\$([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])\s=\s*\$_(GET|POST|REQUEST|COOKIE)/', $html, $matches)) {
+            foreach ($matches[1] as $index => $variable) {
+                $validationRisks['unsafe_assignments'][] = [
+                    'variable' => $variable,
+                    'source' => $matches[2][$index]
+                ];
+            }
+        }
+
+        // Check validation bypass attempts
+        $bypassPatterns = [
+            '/\b(?:strip_tags|htmlspecialchars|htmlentities)\s*\([^)]\)\s=/',
+            '/\b(?:addslashes|mysql_real_escape_string)\s*\([^)]\)\s=/'
+        ];
+
+        foreach ($bypassPatterns as $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $validationRisks['validation_bypass'] = array_merge(
+                    $validationRisks['validation_bypass'] ?? [],
+                    array_unique($matches[0])
+                );
+            }
+        }
+
+        return array_filter($validationRisks);
     }
 
-    private function generateCorrelationSummary($correlatedResults)
+    // Fix untuk fungsi analyzeSecurityHeader yang hilang
+    private function analyzeSecurityHeader($httpEquiv, $content, &$metaRisks)
     {
-        $summary = [];
+        $securityHeaders = [
+            'Content-Security-Policy',
+            'X-Frame-Options',
+            'X-XSS-Protection',
+            'X-Content-Type-Options',
+            'Referrer-Policy'
+        ];
 
-        // Analyze correlations between different types of findings
-        foreach ($correlatedResults as $category => $result) {
-            $summary[$category] = [
-                'severity' => $this->calculateSeverity($result['count']),
-                'confidence' => $result['confidence'],
-                'related_findings' => $this->findRelatedPatterns($category, $correlatedResults)
+        if (in_array($httpEquiv, $securityHeaders)) {
+            $metaRisks['security_headers'][] = [
+                'header' => $httpEquiv,
+                'value' => $content,
+                'is_secure' => $this->isSecureHeaderValue($httpEquiv, $content)
             ];
         }
-
-        return $summary;
     }
 
-    private function findRelatedPatterns($category, $results)
+    // Helper function untuk check secure header value
+    private function isSecureHeaderValue($header, $value)
     {
-        $related = [];
+        $secureValues = [
+            'X-Frame-Options' => ['DENY', 'SAMEORIGIN'],
+            'X-XSS-Protection' => ['1; mode=block'],
+            'X-Content-Type-Options' => ['nosniff']
+        ];
 
-        foreach ($results as $otherCategory => $result) {
-            if ($otherCategory !== $category) {
-                $intersection = $this->findPatternIntersection(
-                    $results[$category]['findings'],
-                    $result['findings']
-                );
+        if (isset($secureValues[$header])) {
+            return in_array($value, $secureValues[$header]);
+        }
 
-                if (!empty($intersection)) {
-                    $related[$otherCategory] = $intersection;
+        return true;
+    }
+
+    private function analyzeEventHandlers(Crawler $node, &$scriptRisks)
+    {
+        $suspiciousHandlers = [
+            'onload',
+            'onerror',
+            'onmouseover',
+            'onclick',
+            'onmouseout',
+            'onkeypress',
+            'onkeydown',
+            'onkeyup',
+            'onsubmit',
+            'onbeforeunload'
+        ];
+
+        foreach ($suspiciousHandlers as $handler) {
+            // Gunakan method attr() bukan attributes()
+            $content = $node->attr($handler);
+            if ($content) {
+                $scriptRisks['event_handlers'][$handler][] = [
+                    'content' => $content,
+                    'risk_level' => $this->assessEventHandlerRisk($content)
+                ];
+            }
+        }
+    }
+
+    private function assessEventHandlerRisk($content)
+    {
+        $riskPatterns = [
+            'critical' => [
+                '/\beval\s*\(/',
+                '/\bdocument\.write\s*\(/',
+                '/\blocation\s*=/',
+                '/\bwindow\.open\s*\(/'
+            ],
+            'high' => [
+                '/\.innerHTML\s*=/',
+                '/\bdocument\.cookie\b/',
+                '/\blocalStorage\b/',
+                '/\bsessionStorage\b/'
+            ],
+            'medium' => [
+                '/\balert\s*\(/',
+                '/\bconfirm\s*\(/',
+                '/\bprompt\s*\(/',
+                '/\.style\b/'
+            ]
+        ];
+
+        foreach ($riskPatterns as $level => $patterns) {
+            foreach ($patterns as $pattern) {
+                if (preg_match($pattern, $content)) {
+                    return [
+                        'level' => $level,
+                        'matched_pattern' => $pattern
+                    ];
                 }
             }
         }
 
-        return $related;
+        return ['level' => 'low', 'matched_pattern' => null];
     }
 
-    private function findPatternIntersection($findings1, $findings2)
+    private function calculateScriptEntropy($content)
     {
-        $intersection = [];
-
-        foreach ($findings1 as $key1 => $value1) {
-            foreach ($findings2 as $key2 => $value2) {
-                if (is_array($value1) && is_array($value2)) {
-                    $common = array_intersect($value1, $value2);
-                    if (!empty($common)) {
-                        $intersection[$key1 . '_' . $key2] = $common;
-                    }
-                }
-            }
-        }
-
-        return $intersection;
-    }
-    private function analyzeNetworkIndicators($html)
-    {
-        $indicators = [];
-
-        // Extract all URLs and IP addresses
-        preg_match_all('/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i', $html, $urls);
-        preg_match_all('/\b(?:\d{1,3}\.){3}\d{1,3}\b/', $html, $ips);
-
-        // Analyze found URLs
-        foreach ($urls[0] as $url) {
-            if ($this->issupricious_url($url)) {
-                $indicators['suspicious_urls'][] = $url;
-            }
-        }
-
-        // Analyze found IPs
-        foreach ($ips[0] as $ip) {
-            if ($this->isSuspiciousIP($ip)) {
-                $indicators['suspicious_ips'][] = $ip;
-            }
-        }
-
-        return $indicators;
-    }
-
-    private function issupricious_url($url)
-    {
-        $suspicious_patterns = [
-            '/(?:pastebin\.com|github\.io|raw\.githubusercontent\.com)/i',
-            '/(?:\/shell|\/cmd|\/exec|\/system)/i',
-            '/(?:\.php\?(?:cmd|exec|system)=)/i'
-        ];
-
-        foreach ($suspicious_patterns as $pattern) {
-            if (preg_match($pattern, $url)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private function isSuspiciousIP($ip)
-    {
-        // Check if IP is private or localhost
-        return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
-    }
-
-    private function analyzeCodePatterns($html)
-    {
-        return [
-            'encryption_patterns' => $this->detectEncryptionPatterns($html),
-            'shell_patterns' => $this->detectShellPatterns($html),
-            'evasion_techniques' => $this->detectEvasionTechniques($html)
-        ];
-    }
-
-    private function detectEncryptionPatterns($html)
-    {
-        $patterns = [
-            '/\b(?:mcrypt_|openssl_|crypt)\w+\s*\(/i',
-            '/\b(?:AES|DES|RC4|Blowfish)\b/i',
-            '/\\x[0-9A-F]{2}/i'
-        ];
-
-        $matches = [];
-        foreach ($patterns as $pattern) {
-            if (preg_match_all($pattern, $html, $found)) {
-                $matches = array_merge($matches, $found[0]);
-            }
-        }
-
-        return array_unique($matches);
-    }
-
-    private function detectShellPatterns($html)
-    {
-        $patterns = [
-            '/\b(?:shell_exec|system|passthru|exec)\s*\([^)]*\$[^)]+\)/i',
-            '/`[^`]*\$[^`]+`/',
-            '/2>&1|>/dev/null/'
-        ];
-
-        $matches = [];
-        foreach ($patterns as $pattern) {
-            if (preg_match_all($pattern, $html, $found)) {
-                $matches = array_merge($matches, $found[0]);
-            }
-        }
-
-        return array_unique($matches);
-    }
-
-    private function detectEvasionTechniques($html)
-    {
-        $techniques = [];
-
-        // String splitting/concatenationy
-        if (preg_match_all('/[\'"][^\'"]+[\'"]\s*\.\s*[\'"][^\'"]+[\'"]/', $html, $matches)) {
-            $techniques['string_concatenation'] = $matches[0];
-        }
-
-        // Variable function calls
-        if (preg_match_all('/\$\w+\s*\([^)]*\)/', $html, $matches)) {
-            $techniques['variable_functions'] = $matches[0];
-        }
-
-        // Character code usage
-        if (preg_match_all('/chr\(\d+\)/', $html, $matches)) {
-            $techniques['char_code'] = $matches[0];
-        }
-
-        return $techniques;
-    }
-
-    private function analyzeBehavioralPatterns($html)
-    {
-        return [
-            'file_operations' => $this->detectFileOperations($html),
-            'network_operations' => $this->detectNetworkOperations($html),
-            'data_exfiltration' => $this->detectDataExfiltration($html)
-        ];
-    }
-
-    private function detectFileOperations($html)
-    {
-        $patterns = [
-            'read' => '/\b(?:fopen|file_get_contents|readfile)\s*\([^)]+\)/',
-            'write' => '/\b(?:fwrite|file_put_contents)\s*\([^)]+\)/',
-            'delete' => '/\b(?:unlink|rmdir)\s*\([^)]+\)/',
-            'create' => '/\b(?:mkdir|touch)\s*\([^)]+\)/'
-        ];
-
-        $operations = [];
-        foreach ($patterns as $type => $pattern) {
-            if (preg_match_all($pattern, $html, $matches)) {
-                $operations[$type] = $matches[0];
-            }
-        }
-
-        return $operations;
-    }
-
-    private function detectNetworkOperations($html)
-    {
-        $patterns = [
-            'connections' => '/\b(?:fsockopen|stream_socket_client|curl_exec)\s*\([^)]+\)/',
-            'downloads' => '/\b(?:wget|curl|file_get_contents)\s*\([^)]*(?:http|ftp)[^)]+\)/',
-            'uploads' => '/\b(?:move_uploaded_file|curl_setopt)\s*\([^)]+CURLOPT_UPLOAD[^)]+\)/'
-        ];
-
-        $operations = [];
-        foreach ($patterns as $type => $pattern) {
-            if (preg_match_all($pattern, $html, $matches)) {
-                $operations[$type] = $matches[0];
-            }
-        }
-
-        return $operations;
-    }
-
-    private function detectDataExfiltration($html)
-    {
-        $patterns = [
-            'database' => '/\b(?:SELECT|INSERT|UPDATE|DELETE)\b.*\bFROM\b/i',
-            'credentials' => '/\b(?:password|user|admin|root)\s*=/',
-            'system' => '/\b(?:phpinfo|get_current_user|getcwd)\s*\(\)/'
-        ];
-
-        $exfiltration = [];
-        foreach ($patterns as $type => $pattern) {
-            if (preg_match_all($pattern, $html, $matches)) {
-                $exfiltration[$type] = $matches[0];
-            }
-        }
-
-        return $exfiltration;
-    }
-
-    private function analyzeContext($html, $url)
-    {
-        $urlParts = parse_url($url);
-        $domain = $urlParts['host'] ?? '';
-
-        return [
-            'domain_analysis' => $this->analyzeDomain($domain),
-            'path_analysis' => $this->analyzePath($urlParts['path'] ?? ''),
-            'content_analysis' => $this->analyzeContent($html)
-        ];
-    }
-
-    private function analyzeDomain($domain)
-    {
-        // Implement domain reputation check
-        // This could integrate with external APIs in a real implementation
-        return [
-            'is_suspicious' => false,
-            'reputation_score' => 0,
-            'known_malicious' => false
-        ];
-    }
-
-    private function analyzePath($path)
-    {
-        $suspicious_paths = [
-            '/admin',
-            '/backup',
-            '/test',
-            '/temp',
-            '/old',
-            '/wp-content',
-            '/wp-includes',
-            '/wp-admin'
-        ];
-
-        return [
-            'is_suspicious' => in_array(strtolower($path), $suspicious_paths),
-            'depth' => substr_count($path, '/'),
-            'hidden' => strpos($path, '.') === 0
-        ];
-    }
-
-    private function analyzeContent($html)
-    {
-        return [
-            'size' => strlen($html),
-            'entropy' => $this->calculateEntropy($html),
-            'comment_analysis' => $this->analyzeComments($html)
-        ];
-    }
-
-    private function calculateEntropy($string)
-    {
-        $frequencies = array_count_values(str_split($string));
+        $frequencies = array_count_values(str_split($content));
         $entropy = 0;
-        $length = strlen($string);
+        $length = strlen($content);
 
         foreach ($frequencies as $count) {
             $probability = $count / $length;
@@ -1822,33 +2548,106 @@ class BackdoorDetectionService
         return $entropy;
     }
 
-    private function analyzeComments($html)
+    private function analyzeDomainReputation($domain, &$scriptRisks)
     {
-        preg_match_all('/<!--.*?-->/s', $html, $matches);
-        return [
-            'count' => count($matches[0]),
-            'suspicious' => $this->findSuspiciousComments($matches[0])
+        // Implement domain reputation checks
+        $suspiciousIndictors = [
+            'length' => strlen($domain) > 30,
+            'numbers' => preg_match('/\d{4,}/', $domain),
+            'special_chars' => preg_match('/[-]{2,}/', $domain),
+            'suspicious_words' => preg_match('/(?:hack|crack|warez|spam|phish|malware)/i', $domain)
         ];
+
+        if (array_filter($suspiciousIndictors)) {
+            $scriptRisks['external_scripts']['suspicious_domain'][] = [
+                'domain' => $domain,
+                'indicators' => array_keys(array_filter($suspiciousIndictors))
+            ];
+        }
     }
 
-    private function findSuspiciousComments($comments)
+    private function enhancedLinkAnalysis(Crawler $crawler)
     {
-        $suspicious = [];
-        $patterns = [
-            '/(?:hack|backdoor|shell|password|todo)/i',
-            '/(?:@author|@version|@copyright)/i',
-            '/(?:\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)/i'
+        $linkRisks = [
+            'suspicious_targets' => [],
+            'dynamic_redirects' => [],
+            'protocol_handlers' => [],
+            'parameter_analysis' => []
         ];
 
-        foreach ($comments as $comment) {
-            foreach ($patterns as $pattern) {
-                if (preg_match($pattern, $comment)) {
-                    $suspicious[] = $comment;
-                    break;
+        $crawler->filter('a')->each(function ($node) use (&$linkRisks) {
+            $href = $node->attr('href');
+            $onclick = $node->attr('onclick');
+
+            if ($href) {
+                $this->analyzeLinkTarget($href, $linkRisks);
+                $this->analyzeLinkParameters($href, $linkRisks);
+            }
+
+            if ($onclick) {
+                $this->analyzeLinkBehavior($onclick, $linkRisks);
+            }
+        });
+
+        return array_filter($linkRisks);
+    }
+
+    private function analyzeLinkTarget($href, &$linkRisks)
+    {
+        $suspiciousTargets = [
+            'admin_access' => '/(?:admin|administrator|setup|install|phpinfo)/',
+            'sensitive_files' => '/\.(?:php|asp|aspx|jsp|cgi|env|config|ini)/',
+            'protocol_handlers' => '/^(?:javascript|data|vbscript|file):/i',
+            'suspicious_domains' => '/(?:\.tk|\.top|\.xyz)$/i',
+            'ip_addresses' => '/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/'
+        ];
+
+        foreach ($suspiciousTargets as $type => $pattern) {
+            if (preg_match($pattern, $href)) {
+                $linkRisks['suspicious_targets'][$type][] = $href;
+            }
+        }
+    }
+
+    private function analyzeLinkParameters($href, &$linkRisks)
+    {
+        parse_str(parse_url($href, PHP_URL_QUERY) ?? '', $params);
+
+        $suspiciousParams = [
+            'command_injection' => '/(?:cmd|exec|system|shell)/',
+            'file_operations' => '/(?:file|path|directory|folder)/',
+            'authentication' => '/(?:user|admin|login|auth|pass)/',
+            'database' => '/(?:select|union|insert|delete)/',
+            'redirects' => '/(?:url|redirect|return|goto)/'
+        ];
+
+        foreach ($params as $key => $value) {
+            foreach ($suspiciousParams as $type => $pattern) {
+                if (preg_match($pattern, strtolower($key))) {
+                    $linkRisks['parameter_analysis'][$type][] = [
+                        'parameter' => $key,
+                        'value' => $value,
+                        'url' => $href
+                    ];
                 }
             }
         }
+    }
 
-        return array_unique($suspicious);
+    private function analyzeLinkBehavior($onclick, &$linkRisks)
+    {
+        $suspiciousBehaviors = [
+            'window_manipulation' => '/\bwindow\.(open|location)\b/',
+            'form_manipulation' => '/\bdocument\.forms\b/',
+            'event_prevention' => '/\bevent\.preventDefault\(\)/',
+            'dynamic_navigation' => '/\blocation\.(href|replace|assign)\b/',
+            'parameter_manipulation' => '/\blocation\.search\b/'
+        ];
+
+        foreach ($suspiciousBehaviors as $type => $pattern) {
+            if (preg_match($pattern, $onclick)) {
+                $linkRisks['dynamic_redirects'][$type][] = $onclick;
+            }
+        }
     }
 }

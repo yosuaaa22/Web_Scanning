@@ -109,7 +109,7 @@ class SecurityScannerController extends Controller
                 Log::error('AI Recommendation error: ' . $e->getMessage());
                 $aiRecommendation = [
                     'recommendations' => [
-                        '⚠️ Tidak dapat menghasilkan rekomendasi karena terjadi error pada analisis.'
+                        '⚠ Tidak dapat menghasilkan rekomendasi karena terjadi error pada analisis.'
                     ]
                 ];
             }
@@ -125,7 +125,6 @@ class SecurityScannerController extends Controller
                 'redirectAnalysis' => $enhancedAnalysis['redirect_analysis'],
                 'registrationAnalysis' => $enhancedAnalysis['registration_analysis']
             ]);
-
         } catch (\Exception $e) {
             Log::error('Scanning Error', [
                 'message' => $e->getMessage(),
@@ -143,5 +142,23 @@ class SecurityScannerController extends Controller
             ->get();
 
         return view('scanner.history', compact('scanResults'));
+    }
+
+    public function showBackdoorDetails()
+    {
+        // Ambil data dari session atau database
+        $backdoorResult = session('backdoorResult');
+
+
+
+        return view('scanner.backdoor-details', compact('backdoorResult'));
+    }
+
+    public function showGamblingDetails()
+    {
+        // Ambil data dari session atau database
+        $gamblingResult = session('gamblingResult');
+
+        return view('scanner.gambling-details', compact('gamblingResult'));
     }
 }
