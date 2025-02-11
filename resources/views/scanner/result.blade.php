@@ -25,15 +25,101 @@
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
+            opacity: 0;
+            animation: pageLoad 1s ease-out forwards;
+        }
+
+        /* New Animations */
+        @keyframes pageLoad {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes cardEntrance {
+            0% {
+                opacity: 0;
+                transform: translateY(60px) scale(0.8) rotateX(10deg);
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: translateY(20px) scale(1.05) rotateX(5deg);
+                box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotateX(0);
+                box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        @keyframes floatIn {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            0% {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes glowPulse {
+            0%, 100% {
+                box-shadow: 0 0 5px var(--accent-color);
+            }
+            50% {
+                box-shadow: 0 0 20px var(--accent-color);
+            }
+        }
+
+        .page-exit {
+            animation: pageExit 0.5s ease-in forwards;
+        }
+
+        @keyframes pageExit {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
         }
 
         .card {
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            animation: cardEntrance 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 1rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s ease-in-out;
+        }
+
+       
+        .card:hover {
+            transform: scale(1.05) rotateX(3deg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
 
         .risk-indicator {
@@ -80,13 +166,11 @@
         }
 
         .risk-indicator {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .risk-indicator:hover {
+            transform: scale(1.1);
         }
 
         .risk-high {
@@ -107,19 +191,28 @@
             border: 1px solid var(--success);
         }
 
+        header {
+            animation: floatIn 1s ease-out forwards;
+        }
+
         .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 0.75rem;
-            padding: 1rem;
+            animation: slideInRight 0.8s ease-out forwards;
+            animation-fill-mode: both;
         }
 
         .recommendation-card {
-            border-left: 4px solid var(--accent-color);
-            background: rgba(56, 189, 248, 0.1);
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 0.5rem;
+            animation: glowPulse 3s infinite;
         }
+
+             /* Staggered animation delays */
+        .card:nth-child(1) { animation-delay: 0.2s; }
+        .card:nth-child(2) { animation-delay: 0.4s; }
+        .card:nth-child(3) { animation-delay: 0.6s; }
+        .card:nth-child(4) { animation-delay: 0.8s; }
+
+        .stat-card:nth-child(1) { animation-delay: 0.3s; }
+        .stat-card:nth-child(2) { animation-delay: 0.5s; }
+        .stat-card:nth-child(3) { animation-delay: 0.7s; }
 
         .details-section {
             max-height: 0;
@@ -132,10 +225,15 @@
         }
 
         .toggle-button {
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            border-radius: 8px; 
+            padding: 0.5rem 1rem; 
+        }
+
+        .toggle-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(2px);
+            border-radius: 12px; 
         }
 
         @keyframes pulse {
@@ -211,35 +309,8 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Risk Summary Card -->
-            {{-- <div class="card p-6">
-                <h2 class="text-xl font-semibold mb-4">
-                    <i class="fas fa-chart-pie mr-2 text-purple-400"></i>Risk Summary
-                </h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="stat-card">
-                        <p class="text-sm text-gray-400">Overall Risk Level</p>
-                        <div
-                            class="risk-indicator {{ $backdoorResult['risk_level'] == 'Tinggi' || $gamblingResult['risk_level'] == 'Tinggi'
-                                ? 'risk-high'
-                                : ($backdoorResult['risk_level'] == 'Sedang' || $gamblingResult['risk_level'] == 'Sedang'
-                                    ? 'risk-medium'
-                                    : 'risk-low') }}">
-                            {{ max($backdoorResult['risk_level'], $gamblingResult['risk_level']) }}
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <p class="text-sm text-gray-400">Confidence Score</p>
-                        <div class="text-xl font-bold">
-                            {{ number_format((($backdoorResult['confidence_level'] ?? ($backdoorResult['confidence_score'] ?? 0)) + ($gamblingResult['confidence_score'] ?? ($gamblingResult['confidence_level'] ?? 0))) / 2, 1) }}%
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
         </div>
-
-        
+     
         <!-- Network and Technical Analysis -->
         <div class="grid grid-cols-1 md:grid-cols-1 gap-5 animate-card">
             <div class="card p-6 mt-6 hover:scale-150 transition-all">
@@ -482,5 +553,57 @@
                 icon.classList.toggle('fa-chevron-up');
                 icon.classList.toggle('fa-chevron-down');
             }
+
+            document.addEventListener('DOMContentLoaded', () => {
+            // Reveal cards on scroll
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+
+            document.querySelectorAll('.card').forEach(card => {
+                observer.observe(card);
+            });
+
+            // Handle page exit animations
+            document.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const href = link.getAttribute('href');
+                    document.body.classList.add('page-exit');
+                    
+                    setTimeout(() => {
+                        window.location.href = href;
+                    }, 500);
+                });
+            });
+
+            // Add hover animation for cards
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    card.style.transform = `
+                        perspective(1000px)
+                        rotateX(${(y - rect.height / 2) / 20}deg)
+                        rotateY(${(x - rect.width / 2) / 20}deg)
+                        translateZ(10px)
+                    `;
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'none';
+                });
+            });
+        });
         </script>
+    </div>
 </body>
