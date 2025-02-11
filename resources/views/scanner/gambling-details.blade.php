@@ -4,12 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Analysis</title>
+    <title>Analisis Gambling</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
         .wrap-content {
@@ -129,21 +131,16 @@
 <body class="bg-gray-50">
     <header class="header-gradient text-white py-6 shadow-lg">
         <div class="container mx-auto px-4 flex justify-between items-center">
-            <h1 class="text-3xl font-bold fade-in">Gambling Analysis</h1>
+            <h1 class="text-3xl font-bold fade-in">Analisis Gambling</h1>
             <!-- Add Download PDF button in header -->
-            <button onclick="generatePDF()"
-                class="download-btn text-white px-4 py-2 rounded-lg shadow-md flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+            <button onclick="generatePDF()" class="download-btn text-white px-6 py-3 rounded-lg shadow-md font-medium">
                 Download PDF
             </button>
         </div>
     </header>
 
     <div class="container mx-auto p-6">
-        <h1 class="text-3xl font-semibold mb-6 text-gray-800 fade-in">Analysis Details</h1>
+        <h1 class="text-3xl font-semibold mb-6 text-gray-800 fade-in">Analisis Detail</h1>
         <div class="bg-white shadow-lg rounded-xl p-6 fade-in">
             @if (!empty($gamblingResult['analysis']))
                 @foreach ($gamblingResult['analysis'] as $key => $value)
@@ -230,73 +227,226 @@
 
     <script>
         function generatePDF() {
-            const {
-                jsPDF
-            } = window.jspdf;
-            const doc = new jsPDF();
+            getBase64Image("/images/logo.png", function(logoBase64) {
+                const {
+                    jsPDF
+                } = window.jspdf;
+                const doc = new jsPDF();
+                const pageWidth = doc.internal.pageSize.width;
+                const pageHeight = doc.internal.pageSize.height;
+                const margin = 10;
 
-            // Set initial position
-            let yPos = 20;
+                // Header background with gradient effect
+                const headerHeight = 60;
+                doc.setFillColor(41, 58, 74); // Dark blue base color
+                doc.rect(0, 0, pageWidth, headerHeight, 'F');
 
-            // Add title
-            doc.setFontSize(20);
-            doc.setTextColor(0, 51, 102);
-            doc.text('Gambling Analysis Report', 20, yPos);
-            yPos += 15;
+                // Add logo with proper spacing
+                const logoSize = 40;
+                const logoMargin = 15;
+                doc.setFillColor(255, 255, 255);
+                doc.roundedRect(logoMargin, 10, logoSize, logoSize, 3, 3, 'F');
+                doc.addImage(logoBase64, 'PNG', logoMargin + 2, 12, logoSize - 4, logoSize - 4);
 
-            // Get all the sections
-            const sections = document.querySelectorAll('.collapse-section');
+                // Title with better positioning to avoid overlapping with logo
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(20);
+                doc.setTextColor(255, 255, 255);
+                const titleX = logoMargin + logoSize + 20; // Adjust title position to the right of the logo
+                doc.text("LAPORAN ANALISIS GAMBLING", titleX, 30, {
+                    align: "left"
+                });
 
-            sections.forEach(section => {
-                // Get section title
-                const title = section.querySelector('.collapse-header h2')?.textContent ||
-                    section.querySelector('.collapse-header h3')?.textContent;
+                // Subtitle
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "normal");
+                doc.text("Evaluasi Sistem Komprehensif", titleX, 40, {
+                    align: "left"
+                });
 
-                if (title) {
-                    // Add section title
-                    doc.setFontSize(14);
-                    doc.setTextColor(51, 51, 51);
+                // Decorative lines
+                doc.setDrawColor(255, 255, 255);
+                doc.setLineWidth(0.5);
+                doc.line(titleX, 15, pageWidth - margin, 15); // Top decorative line
+                doc.line(titleX, 45, pageWidth - margin, 45); // Bottom decorative line
 
-                    // Check if new page is needed
-                    if (yPos > 270) {
-                        doc.addPage();
-                        yPos = 20;
-                    }
+                // Report metadata box
+                const metadataY = headerHeight + 10;
+                doc.setFillColor(245, 247, 250);
+                doc.roundedRect(pageWidth - 80, metadataY, 70, 25, 2, 2, 'F');
 
-                    doc.text(title.trim(), 20, yPos);
-                    yPos += 10;
+                doc.setFontSize(9);
+                doc.setTextColor(80, 80, 80);
+                const reportDate = new Date().toLocaleDateString();
+                const documentId = generateDocumentId();
+                doc.text(`Report ID: ${documentId}`, pageWidth - 75, metadataY + 8);
+                doc.text(`Generated: ${reportDate}`, pageWidth - 75, metadataY + 15);
+                doc.text(`Classification: Confidential`, pageWidth - 75, metadataY + 22);
 
-                    // Get content
-                    const content = section.querySelector('.collapse-content');
-                    if (content) {
-                        const contentText = content.textContent.trim();
-                        doc.setFontSize(12);
-                        doc.setTextColor(85, 85, 85);
+                let yPos = headerHeight + 45; // Adjusted starting position for content
 
-                        // Split text into lines
-                        const lines = doc.splitTextToSize(contentText, 170);
-                        lines.forEach(line => {
-                            if (yPos > 270) {
-                                doc.addPage();
-                                yPos = 20;
-                            }
-                            doc.text(line, 20, yPos);
-                            yPos += 7;
-                        });
+                // Get data from Laravel
+                const gamblingResult = @json($gamblingResult['analysis']);
+                const descriptions = @json($descriptions);
 
-                        yPos += 5;
-                    }
+                if (!gamblingResult || Object.keys(gamblingResult).length === 0) {
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(12);
+                    doc.text("No security analysis data available.", margin, yPos);
+                    addEnhancedFooter(doc);
+                    doc.save("Laporan-Analisis-Gambling.pdf");
+                    return;
                 }
+
+                // Content sections
+                Object.keys(gamblingResult).forEach((key, index) => {
+                    let title = key.replace(/_/g, " ").toUpperCase();
+
+                    // Section header with clean styling
+                    doc.setFillColor(41, 58, 74);
+                    doc.roundedRect(margin, yPos - 5, pageWidth - (margin * 2), 12, 2, 2, 'F');
+
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(12);
+                    doc.setTextColor(255, 255, 255);
+                    doc.text(title, margin + 5, yPos + 3);
+                    yPos += 12;
+
+                    // Table data preparation
+                    let data = [];
+                    Object.keys(gamblingResult[key]).forEach((subKey) => {
+                        let subTitle = subKey.replace(/_/g, " ");
+                        let value = gamblingResult[key][subKey];
+
+                        if (typeof value === 'object') {
+                            value = JSON.stringify(value, null, 2)
+                                .replace(/[\{\}"]/g, '')
+                                .trim();
+                        }
+
+                        data.push([subTitle, value]);
+                    });
+
+                    // Clean table styling
+                    doc.autoTable({
+                        startY: yPos,
+                        head: [
+                            ["Kategori", "Detail"]
+                        ],
+                        body: data,
+                        theme: "grid",
+                        styles: {
+                            fontSize: 9,
+                            cellPadding: 6,
+                            font: "helvetica",
+                            lineWidth: 0.1
+                        },
+                        headStyles: {
+                            fillColor: [41, 58, 74],
+                            textColor: [255, 255, 255],
+                            fontSize: 10,
+                            fontStyle: 'bold',
+                            halign: 'left'
+                        },
+                        columnStyles: {
+                            0: {
+                                fontStyle: 'bold',
+                                fillColor: [245, 247, 250],
+                                cellWidth: 60
+                            },
+                            1: {
+                                fillColor: [255, 255, 255],
+                                cellWidth: 'auto'
+                            }
+                        },
+                        margin: {
+                            left: margin,
+                            right: margin
+                        },
+                        didDrawCell: function(data) {
+                            if (data.cell.section === 'body') {
+                                doc.setDrawColor(220, 220, 220);
+                                doc.setLineWidth(0.1);
+                                doc.line(
+                                    data.cell.x,
+                                    data.cell.y + data.cell.height,
+                                    data.cell.x + data.cell.width,
+                                    data.cell.y + data.cell.height
+                                );
+                            }
+                        }
+                    });
+
+                    yPos = doc.lastAutoTable.finalY + 15;
+
+                    // Clean section separator
+                    if (index < Object.keys(gamblingResult).length - 1) {
+                        doc.setDrawColor(220, 220, 220);
+                        doc.setLineWidth(0.5);
+                        doc.line(margin, yPos - 7, pageWidth - margin, yPos - 7);
+                    }
+                });
+
+                addEnhancedFooter(doc);
+                doc.save("Laporan-Analisis-Gambling.pdf");
             });
+        }
 
-            // Add timestamp
-            const timestamp = new Date().toLocaleString();
-            doc.setFontSize(10);
-            doc.setTextColor(128, 128, 128);
-            doc.text(`Generated on: ${timestamp}`, 20, 280);
 
-            // Save the PDF
-            doc.save('security-analysis.pdf');
+        // Enhanced footer function with clean styling
+        function addEnhancedFooter(doc) {
+            const pageCount = doc.internal.getNumberOfPages();
+            const pageWidth = doc.internal.pageSize.width;
+            const margin = 10;
+
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+
+                // Clean footer background
+                doc.setFillColor(245, 247, 250);
+                doc.rect(0, doc.internal.pageSize.height - 20, pageWidth, 20, 'F');
+
+                doc.setFontSize(8);
+                doc.setTextColor(100, 100, 100);
+                doc.text(
+                    `Page ${i} of ${pageCount}`,
+                    margin,
+                    doc.internal.pageSize.height - 10
+                );
+
+                doc.text(
+                    'Generated by CSIRT Scanning System',
+                    pageWidth - margin,
+                    doc.internal.pageSize.height - 10, {
+                        align: 'right'
+                    }
+                );
+
+                // Clean footer separator
+                doc.setDrawColor(220, 220, 220);
+                doc.setLineWidth(0.5);
+                doc.line(0, doc.internal.pageSize.height - 20, pageWidth, doc.internal.pageSize.height - 20);
+            }
+        }
+
+        // Helper functions remain unchanged
+        function generateDocumentId() {
+            return 'SEC-' + new Date().getTime().toString(36).toUpperCase();
+        }
+
+        function getBase64Image(url, callback) {
+            var img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = function() {
+                var canvas = document.createElement("canvas");
+                canvas.width = this.width;
+                canvas.height = this.height;
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(this, 0, 0);
+                var dataURL = canvas.toDataURL("image/png");
+                callback(dataURL);
+            };
+            img.src = url;
         }
 
         function toggleSection(element) {
