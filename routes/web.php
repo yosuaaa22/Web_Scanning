@@ -23,23 +23,6 @@ Route::middleware(['auth', 'security.enhanced'])->group(function () {
 });
 
 
-use App\Http\Controllers\WebsiteMonitorController;
-
-// Route::get('/monitor', [WebsiteMonitorController::class, 'index'])->name('monitor.index');
-// Route::post('/websites', [WebsiteMonitorController::class, 'store'])->name('monitor.store');
-// Route::post('/websites/{website}/check-status', [WebsiteMonitorController::class, 'checkStatus'])->name('checkStatus');
-// Route::get('/websites/{website}/status', [WebsiteMonitorController::class, 'getCachedWebsiteStatus']);
-// Route::get('/monitor/real-time-status', [WebsiteMonitorController::class, 'getRealTimeStatus']);
-
-// Route::get('/websites/{website}/ssl-certificate', [WebsiteMonitorController::class, 'getSslCertificateStatus'])->name('monitor.ssl-certificate');
-// Route::get('/websites/{website}/security-headers', [WebsiteMonitorController::class, 'getSecurityHeadersStatus'])->name('monitor.security-headers');
-// Route::get('/websites/{website}/open-ports', [WebsiteMonitorController::class, 'getOpenPortsStatus'])->name('monitor.open-ports');
-// Route::get('/security-report', [WebsiteMonitorController::class, 'generateSecurityReport'])->name('security.report');
-
-
-// Route::post('/websites/{id}/check-status', [WebsiteMonitorController::class, 'checkStatus']);
-
-use App\Http\Controllers\SecurityController;
 
 Route::get('/backdoor-details', [SecurityScannerController::class, 'showBackdoorDetails'])->name('backdoor.details');
 Route::get('/gambling-details', [SecurityScannerController::class, 'showGamblingDetails'])->name('gambling.details');
