@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ef0aae6a65a4d7da46c650c0864c0b9b",
+    "content-hash": "c36b840fe58c0d83655b477243ecad0e",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -1433,16 +1433,16 @@
         },
         {
             "name": "jaybizzle/crawler-detect",
-            "version": "v1.3.1",
+            "version": "v1.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/JayBizzle/Crawler-Detect.git",
-                "reference": "e5ebe17f5a30a7840d059206447adfe0db60d15f"
+                "reference": "b15237098211b502b9629bbf6f6884a3279420f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JayBizzle/Crawler-Detect/zipball/e5ebe17f5a30a7840d059206447adfe0db60d15f",
-                "reference": "e5ebe17f5a30a7840d059206447adfe0db60d15f",
+                "url": "https://api.github.com/repos/JayBizzle/Crawler-Detect/zipball/b15237098211b502b9629bbf6f6884a3279420f2",
+                "reference": "b15237098211b502b9629bbf6f6884a3279420f2",
                 "shasum": ""
             },
             "require": {
@@ -1479,9 +1479,9 @@
             ],
             "support": {
                 "issues": "https://github.com/JayBizzle/Crawler-Detect/issues",
-                "source": "https://github.com/JayBizzle/Crawler-Detect/tree/v1.3.1"
+                "source": "https://github.com/JayBizzle/Crawler-Detect/tree/v1.3.2"
             },
-            "time": "2025-01-20T19:31:14+00:00"
+            "time": "2025-02-06T18:54:20+00:00"
         },
         {
             "name": "jean85/pretty-package-versions",
@@ -5340,16 +5340,16 @@
         },
         {
             "name": "sentry/sentry-laravel",
-            "version": "4.11.0",
+            "version": "4.12.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/getsentry/sentry-laravel.git",
-                "reference": "ad7d59652f6fb2934b54ef9d469abeaaf5f4eb96"
+                "reference": "da1ee3417dfb3576a6aaa0f8b25892ebdb98fdb0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/getsentry/sentry-laravel/zipball/ad7d59652f6fb2934b54ef9d469abeaaf5f4eb96",
-                "reference": "ad7d59652f6fb2934b54ef9d469abeaaf5f4eb96",
+                "url": "https://api.github.com/repos/getsentry/sentry-laravel/zipball/da1ee3417dfb3576a6aaa0f8b25892ebdb98fdb0",
+                "reference": "da1ee3417dfb3576a6aaa0f8b25892ebdb98fdb0",
                 "shasum": ""
             },
             "require": {
@@ -5413,7 +5413,7 @@
             ],
             "support": {
                 "issues": "https://github.com/getsentry/sentry-laravel/issues",
-                "source": "https://github.com/getsentry/sentry-laravel/tree/4.11.0"
+                "source": "https://github.com/getsentry/sentry-laravel/tree/4.12.0"
             },
             "funding": [
                 {
@@ -5425,20 +5425,20 @@
                     "type": "custom"
                 }
             ],
-            "time": "2025-01-23T12:35:37+00:00"
+            "time": "2025-02-05T13:13:03+00:00"
         },
         {
             "name": "spatie/browsershot",
-            "version": "5.0.5",
+            "version": "5.0.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/browsershot.git",
-                "reference": "c0fa14c2386df2b4444e803ddc11e592b16d3a20"
+                "reference": "0bb1832bdc2ed7d7d61e99c66ece817385d3b46c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/browsershot/zipball/c0fa14c2386df2b4444e803ddc11e592b16d3a20",
-                "reference": "c0fa14c2386df2b4444e803ddc11e592b16d3a20",
+                "url": "https://api.github.com/repos/spatie/browsershot/zipball/0bb1832bdc2ed7d7d61e99c66ece817385d3b46c",
+                "reference": "0bb1832bdc2ed7d7d61e99c66ece817385d3b46c",
                 "shasum": ""
             },
             "require": {
@@ -5485,7 +5485,7 @@
                 "webpage"
             ],
             "support": {
-                "source": "https://github.com/spatie/browsershot/tree/5.0.5"
+                "source": "https://github.com/spatie/browsershot/tree/5.0.6"
             },
             "funding": [
                 {
@@ -5493,7 +5493,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-12-30T12:56:36+00:00"
+            "time": "2025-02-10T09:10:30+00:00"
         },
         {
             "name": "spatie/crawler",
@@ -5802,87 +5802,6 @@
                 }
             ],
             "time": "2025-01-13T13:04:43+00:00"
-        },
-        {
-            "name": "stichoza/google-translate-php",
-            "version": "v5.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Stichoza/google-translate-php.git",
-                "reference": "9429773d991c98f68a25bec40d20f590ea3312a0"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Stichoza/google-translate-php/zipball/9429773d991c98f68a25bec40d20f590ea3312a0",
-                "reference": "9429773d991c98f68a25bec40d20f590ea3312a0",
-                "shasum": ""
-            },
-            "require": {
-                "ext-dom": "*",
-                "ext-json": "*",
-                "ext-mbstring": "*",
-                "guzzlehttp/guzzle": "^7.0",
-                "php": "^8.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^9.5.10"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Stichoza\\GoogleTranslate\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Levan Velijanashvili",
-                    "email": "me@stichoza.com"
-                }
-            ],
-            "description": "Free Google Translate API PHP Package",
-            "homepage": "https://github.com/Stichoza/google-translate-php",
-            "keywords": [
-                "google",
-                "php",
-                "translate",
-                "translating",
-                "translator"
-            ],
-            "support": {
-                "issues": "https://github.com/Stichoza/google-translate-php/issues",
-                "source": "https://github.com/Stichoza/google-translate-php/tree/v5.2.0"
-            },
-            "funding": [
-                {
-                    "url": "https://btc.com/bc1qc25j4x7yahghm8nnn6lypnw59nptylsw32nkfl",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://www.paypal.me/stichoza",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://ko-fi.com/stichoza",
-                    "type": "ko_fi"
-                },
-                {
-                    "url": "https://liberapay.com/stichoza",
-                    "type": "liberapay"
-                },
-                {
-                    "url": "https://opencollective.com/stichoza",
-                    "type": "open_collective"
-                },
-                {
-                    "url": "https://www.patreon.com/stichoza",
-                    "type": "patreon"
-                }
-            ],
-            "time": "2024-08-05T19:11:36+00:00"
         },
         {
             "name": "symfony/clock",
@@ -9668,16 +9587,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "1.12.16",
+            "version": "1.12.17",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "e0bb5cb78545aae631220735aa706eac633a6be9"
+                "reference": "7027b3b0270bf392de0cfba12825979768d728bf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/e0bb5cb78545aae631220735aa706eac633a6be9",
-                "reference": "e0bb5cb78545aae631220735aa706eac633a6be9",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/7027b3b0270bf392de0cfba12825979768d728bf",
+                "reference": "7027b3b0270bf392de0cfba12825979768d728bf",
                 "shasum": ""
             },
             "require": {
@@ -9722,7 +9641,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-01-21T14:50:05+00:00"
+            "time": "2025-02-07T15:01:57+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -10047,16 +9966,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "10.5.44",
+            "version": "10.5.45",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "1381c62769be4bb88fa4c5aec1366c7c66ca4f36"
+                "reference": "bd68a781d8e30348bc297449f5234b3458267ae8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/1381c62769be4bb88fa4c5aec1366c7c66ca4f36",
-                "reference": "1381c62769be4bb88fa4c5aec1366c7c66ca4f36",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/bd68a781d8e30348bc297449f5234b3458267ae8",
+                "reference": "bd68a781d8e30348bc297449f5234b3458267ae8",
                 "shasum": ""
             },
             "require": {
@@ -10128,7 +10047,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/10.5.44"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/10.5.45"
             },
             "funding": [
                 {
@@ -10144,7 +10063,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-01-31T07:00:38+00:00"
+            "time": "2025-02-06T16:08:12+00:00"
         },
         {
             "name": "sebastian/cli-parser",
