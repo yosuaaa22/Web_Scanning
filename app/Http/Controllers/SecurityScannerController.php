@@ -114,6 +114,9 @@ class SecurityScannerController extends Controller
                 ];
             }
 
+            session(['backdoorResult' => $backdoorResult]);
+            session(['gamblingResult' => $gamblingResult]);
+
             return view('scanner.result', [
                 'scanResult' => $scanResult,
                 'backdoorResult' => $backdoorResult,
@@ -149,16 +152,44 @@ class SecurityScannerController extends Controller
         // Ambil data dari session atau database
         $backdoorResult = session('backdoorResult');
 
+        
 
-
-        return view('scanner.backdoor-details', compact('backdoorResult'));
+        $descriptions = [
+            'dangerous_patterns' => [
+                'cookie_manipulation' => 'Mengakses atau memanipulasi cookie browser, sering digunakan untuk mencuri sesi pengguna.',
+                'storage_access' => 'Mengakses atau memodifikasi penyimpanan lokal browser, bisa digunakan untuk menyimpan data sensitif.',
+                'script_injection' => 'Memodifikasi sumber elemen, misalnya elemen <script>, yang bisa digunakan untuk menyisipkan skrip berbahaya.',
+                'window_manipulation' => 'Mengubah lokasi jendela browser, sering digunakan untuk phishing atau redirect mencurigakan.',
+                'dynamic_script' => 'Membuat elemen skrip secara dinamis, bisa digunakan untuk menjalankan kode yang tidak sah.',
+            ],
+            'obfuscation_attempts' => [
+                'high_entropy' => 'Skrip memiliki kompleksitas tinggi, sering kali digunakan untuk menyamarkan kode berbahaya.',
+                'unicode_escape' => 'Menggunakan karakter Unicode untuk menyembunyikan skrip, teknik yang sering digunakan dalam eksploitasi.',
+            ],
+        ];
+        // dd($descriptions);
+        return view('scanner.backdoor-details', compact('backdoorResult', 'descriptions'));
+        
     }
 
     public function showGamblingDetails()
     {
+        $descriptions = [
+            'dangerous_patterns' => [
+                'cookie_manipulation' => 'Mengakses atau memanipulasi cookie browser, sering digunakan untuk mencuri sesi pengguna.',
+                'storage_access' => 'Mengakses atau memodifikasi penyimpanan lokal browser, bisa digunakan untuk menyimpan data sensitif.',
+                'script_injection' => 'Memodifikasi sumber elemen, misalnya elemen <script>, yang bisa digunakan untuk menyisipkan skrip berbahaya.',
+                'window_manipulation' => 'Mengubah lokasi jendela browser, sering digunakan untuk phishing atau redirect mencurigakan.',
+                'dynamic_script' => 'Membuat elemen skrip secara dinamis, bisa digunakan untuk menjalankan kode yang tidak sah.',
+            ],
+            'obfuscation_attempts' => [
+                'high_entropy' => 'Skrip memiliki kompleksitas tinggi, sering kali digunakan untuk menyamarkan kode berbahaya.',
+                'unicode_escape' => 'Menggunakan karakter Unicode untuk menyembunyikan skrip, teknik yang sering digunakan dalam eksploitasi.',
+            ],
+        ];
         // Ambil data dari session atau database
         $gamblingResult = session('gamblingResult');
 
-        return view('scanner.gambling-details', compact('gamblingResult'));
+        return view('scanner.gambling-details', compact('gamblingResult', 'descriptions'));
     }
 }

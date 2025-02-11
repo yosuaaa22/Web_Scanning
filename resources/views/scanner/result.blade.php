@@ -138,8 +138,16 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        .toggle-button:hover {
-            background: rgba(135, 131, 158, 0.1);
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
         }
 
       
@@ -157,16 +165,23 @@
         @keyframes fadeIn {
             from {
                 opacity: 0;
+                transform: translateY(-10px);
             }
+
             to {
                 opacity: 1;
+                transform: translateY(0);
             }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
         }
     </style>
 </head>
 
-<body class="p-4 md:p-8">
-    <div class="max-w-7xl mx-auto animate-card">
+<body class="p-4 md:p-8 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+    <div class="max-w-7xl mx-auto animate-fade-in">
         <!-- Header Section -->
         <header class="text-center mb-8">
             <div class="inline-block bg-blue-600 text-white px-4 py-2 rounded-full mb-4 animate-float">
@@ -193,6 +208,32 @@
                     <div class="stat-card">
                         <p class="text-sm text-gray-400">Scan Time</p>
                         <p class="font-mono text-sm">{{ $scanResult->scan_time->format('Y-m-d H:i:s') }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Summary Card -->
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold mb-4">
+                    <i class="fas fa-chart-pie mr-2 text-purple-400"></i>Risk Summary
+                </h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="stat-card">
+                        <p class="text-sm text-gray-400">Overall Risk Level</p>
+                        <div
+                            class="risk-indicator {{ $backdoorResult['risk_level'] == 'Tinggi' || $gamblingResult['risk_level'] == 'Tinggi'
+                                ? 'risk-high'
+                                : ($backdoorResult['risk_level'] == 'Sedang' || $gamblingResult['risk_level'] == 'Sedang'
+                                    ? 'risk-medium'
+                                    : 'risk-low') }}">
+                            {{ max($backdoorResult['risk_level'], $gamblingResult['risk_level']) }}
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-sm text-gray-400">Confidence Score</p>
+                        <div class="text-xl font-bold">
+                            {{ number_format((($backdoorResult['confidence_level'] ?? ($backdoorResult['confidence_score'] ?? 0)) + ($gamblingResult['confidence_score'] ?? ($gamblingResult['confidence_level'] ?? 0))) / 2, 1) }}%
+                        </div>
                     </div>
                 </div>
             </div>
@@ -335,10 +376,11 @@
         </div>
 
         <!-- Detailed Analysis Section -->
+        <!-- resources/views/scanner/result.blade.php -->
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <!-- Backdoor Analysis -->
-            <div class="card p-6 hover:scale-120 transition-all">
+            <div class="card p-6">
                 <h2 class="text-xl font-semibold mb-4">
                     <i class="fas fa-bug mr-2 text-red-400"></i>Backdoor Analysis
                 </h2>
@@ -357,8 +399,9 @@
                     @if (!empty($backdoorResult['details']))
                         <div class="mt-4">
                             <a href="{{ route('backdoor.details') }}"
-                                class="toggle-button bg-blue-500">
+                                class="toggle-button flex justify-between items-center bg-blue-500 text-white px-4 py-2 rounded-lg">
                                 <span>View Details</span>
+                                <i class="fas fa-chevron-down"></i>
                             </a>
                         </div>
                     @endif
@@ -366,7 +409,7 @@
             </div>
 
             <!-- Gambling Analysis -->
-            <div class="card p-6 hover:scale-120 transition-all">
+            <div class="card p-6">
                 <h2 class="text-xl font-semibold mb-4">
                     <i class="fas fa-dice mr-2 text-yellow-400"></i>Gambling Analysis
                 </h2>
@@ -385,8 +428,9 @@
                     @if (!empty($gamblingResult['analysis']))
                         <div class="mt-4">
                             <a href="{{ route('gambling.details') }}"
-                                class="toggle-button background">
+                                class="toggle-button flex justify-between items-center bg-blue-500 text-white px-4 py-2 rounded-lg">
                                 <span>View Details</span>
+                                <i class="fas fa-chevron-down"></i>
                             </a>
                         </div>
                     @endif
@@ -396,14 +440,13 @@
 
 
         <!-- AI Recommendations Section -->
-        <div class="card p-6 mt-6 hover:scale-120 transition-all">
+        <div class="card p-6 mt-6">
             <h2 class="text-xl font-semibold mb-4">
                 <i class="fas fa-robot mr-2 text-green-400"></i>AI Recommendations
             </h2>
             @if (is_array($aiRecommendation['recommendations']))
-                @foreach ($aiRecommendation['recommendations'] as $index => $recommendation)
-                <div class="recommendation-card opacity-0 animate-fade-in" 
-                    style="animation-delay: {{ $index * 100 }}ms">
+                @foreach ($aiRecommendation['recommendations'] as $recommendation)
+                    <div class="recommendation-card">
                         <h3 class="font-semibold mb-2">
                             {{ is_array($recommendation) ? $recommendation['title'] : $recommendation }}</h3>
                         @if (is_array($recommendation) && !empty($recommendation['actions']))
@@ -441,60 +484,5 @@
                 icon.classList.toggle('fa-chevron-up');
                 icon.classList.toggle('fa-chevron-down');
             }
-
-         // Enhanced JavaScript with Intersection Observer
-            document.addEventListener("DOMContentLoaded", function() {
-                // Animate elements on scroll
-                const observers = [];
-                document.querySelectorAll('.card-entrance').forEach((card, index) => {
-                    const observer = new IntersectionObserver((entries) => {
-                        entries.forEach(entry => {
-                            if (entry.isIntersecting) {
-                                entry.target.style.opacity = '1';
-                            }
-                        });
-                    });
-                    observer.observe(card);
-                    observers.push(observer);
-                });
-
-                // Add hover scale effect
-                document.querySelectorAll('.hover\\:scale').forEach(element => {
-                    element.addEventListener('mouseenter', () => {
-                        element.style.transform = 'scale(1.02)';
-                    });
-                    element.addEventListener('mouseleave', () => {
-                        element.style.transform = 'scale(1)';
-                    });
-                });
-
-                // Enhanced page transitions
-                document.querySelectorAll('a').forEach(link => {
-                    link.addEventListener('click', (e) => {
-                        if (link.hash || link.target === '_blank') return;
-                        
-                        e.preventDefault();
-                        document.body.classList.add('page-exit-active');
-                        
-                        setTimeout(() => {
-                            window.location.href = link.href;
-                        }, 500);
-                    });
-                });
-
-                // Rotate security badge on hover
-                document.querySelector('.scan-badge').addEventListener('mouseenter', () => {
-                    document.querySelector('.fa-shield-alt').classList.add('animate-rotate');
-                });
-                document.querySelector('.scan-badge').addEventListener('mouseleave', () => {
-                    document.querySelector('.fa-shield-alt').classList.remove('animate-rotate');
-                });
-            });
-
-            // Add entrance animation to AI recommendations
-            document.querySelectorAll('.recommendation-card').forEach((card, index) => {
-                setTimeout(() => {
-                    card.style.opacity = '1';
-                }, index * 100);
-            });
         </script>
+</body>
