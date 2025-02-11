@@ -213,7 +213,7 @@
             </div>
 
             <!-- Risk Summary Card -->
-            <div class="card p-6">
+            {{-- <div class="card p-6">
                 <h2 class="text-xl font-semibold mb-4">
                     <i class="fas fa-chart-pie mr-2 text-purple-400"></i>Risk Summary
                 </h2>
@@ -236,7 +236,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
         </div>
 
         
@@ -399,9 +399,8 @@
                     @if (!empty($backdoorResult['details']))
                         <div class="mt-4">
                             <a href="{{ route('backdoor.details') }}"
-                                class="toggle-button flex justify-between items-center bg-blue-500 text-white px-4 py-2 rounded-lg">
+                                class="toggle-button">
                                 <span>View Details</span>
-                                <i class="fas fa-chevron-down"></i>
                             </a>
                         </div>
                     @endif
@@ -428,9 +427,8 @@
                     @if (!empty($gamblingResult['analysis']))
                         <div class="mt-4">
                             <a href="{{ route('gambling.details') }}"
-                                class="toggle-button flex justify-between items-center bg-blue-500 text-white px-4 py-2 rounded-lg">
+                                class="toggle-button">
                                 <span>View Details</span>
-                                <i class="fas fa-chevron-down"></i>
                             </a>
                         </div>
                     @endif
