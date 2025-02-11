@@ -51,8 +51,8 @@ Route::prefix('security')->group(function () {
         ->name('security.report');
 });
 
-
-
+Route::get('/backdoor-details', [SecurityScannerController::class, 'showBackdoorDetails'])->name('backdoor.details');
+Route::get('/gambling-details', [SecurityScannerController::class, 'showGamblingDetails'])->name('gambling.details');
 
 
 

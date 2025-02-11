@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -102,8 +103,15 @@
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
         }
 
         .scan-badge {
@@ -123,8 +131,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .animate-fade-in {
@@ -132,6 +147,7 @@
         }
     </style>
 </head>
+
 <body class="p-4 md:p-8 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
     <div class="max-w-7xl mx-auto animate-fade-in">
         <!-- Header Section -->
@@ -170,20 +186,19 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="stat-card">
                         <p class="text-sm text-gray-400">Overall Risk Level</p>
-                        <div class="risk-indicator {{
-                            $backdoorResult['risk_level'] == 'Tinggi' || $gamblingResult['risk_level'] == 'Tinggi'
+                        <div
+                            class="risk-indicator {{ $backdoorResult['risk_level'] == 'Tinggi' || $gamblingResult['risk_level'] == 'Tinggi'
                                 ? 'risk-high'
                                 : ($backdoorResult['risk_level'] == 'Sedang' || $gamblingResult['risk_level'] == 'Sedang'
                                     ? 'risk-medium'
-                                    : 'risk-low')
-                        }}">
+                                    : 'risk-low') }}">
                             {{ max($backdoorResult['risk_level'], $gamblingResult['risk_level']) }}
                         </div>
                     </div>
                     <div class="stat-card">
                         <p class="text-sm text-gray-400">Confidence Score</p>
                         <div class="text-xl font-bold">
-                            {{ number_format((($backdoorResult['confidence_level'] ?? $backdoorResult['confidence_score'] ?? 0) + ($gamblingResult['confidence_score'] ?? $gamblingResult['confidence_level'] ?? 0)) / 2, 1) }}%
+                            {{ number_format((($backdoorResult['confidence_level'] ?? ($backdoorResult['confidence_score'] ?? 0)) + ($gamblingResult['confidence_score'] ?? ($gamblingResult['confidence_level'] ?? 0))) / 2, 1) }}%
                         </div>
                     </div>
                 </div>
@@ -209,9 +224,9 @@
                     <h3 class="text-lg font-semibold mb-3 text-blue-400">
                         <i class="fas fa-globe-americas mr-2"></i>Network Indicators
                     </h3>
-                    @if(!empty($networkAnalysis['suspicious_urls']))
+                    @if (!empty($networkAnalysis['suspicious_urls']))
                         <ul class="list-disc list-inside text-sm space-y-2">
-                            @foreach($networkAnalysis['suspicious_urls'] as $url)
+                            @foreach ($networkAnalysis['suspicious_urls'] as $url)
                                 <li class="text-yellow-300">{{ $url['full_url'] }}</li>
                             @endforeach
                         </ul>
@@ -225,9 +240,9 @@
                     <h3 class="text-lg font-semibold mb-3 text-red-400">
                         <i class="fas fa-eye-slash mr-2"></i>Hidden Elements
                     </h3>
-                    @if(!empty($hiddenElements['css_hidden']))
+                    @if (!empty($hiddenElements['css_hidden']))
                         <ul class="list-disc list-inside text-sm space-y-2">
-                            @foreach($hiddenElements['css_hidden'] as $element)
+                            @foreach ($hiddenElements['css_hidden'] as $element)
                                 <li class="text-red-300">
                                     {{ $element['element'] }}
                                     <span class="text-xs text-gray-400">({{ $element['pattern_matched'] }})</span>
@@ -248,9 +263,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <h4 class="font-medium text-blue-300 mb-2">Suspicious JS Patterns</h4>
-                        @if(!empty($jsAnalysis['suspicious_patterns']))
+                        @if (!empty($jsAnalysis['suspicious_patterns']))
                             <ul class="list-disc list-inside text-sm space-y-1">
-                                @foreach($jsAnalysis['suspicious_patterns'] as $pattern)
+                                @foreach ($jsAnalysis['suspicious_patterns'] as $pattern)
                                     <li class="text-yellow-300">{{ $pattern['type'] }}</li>
                                 @endforeach
                             </ul>
@@ -261,9 +276,9 @@
 
                     <div>
                         <h4 class="font-medium text-blue-300 mb-2">Suspicious Redirects</h4>
-                        @if(!empty($redirectAnalysis['suspicious_redirects']))
+                        @if (!empty($redirectAnalysis['suspicious_redirects']))
                             <ul class="list-disc list-inside text-sm space-y-1">
-                                @foreach($redirectAnalysis['suspicious_redirects'] as $redirect)
+                                @foreach ($redirectAnalysis['suspicious_redirects'] as $redirect)
                                     <li class="text-red-300">{{ $redirect['url'] }}</li>
                                 @endforeach
                             </ul>
@@ -293,9 +308,9 @@
                     <h3 class="text-lg font-semibold mb-3 text-blue-400">
                         <i class="fas fa-file-alt mr-2"></i>Required Fields
                     </h3>
-                    @if(!empty($registrationAnalysis['required_fields']))
+                    @if (!empty($registrationAnalysis['required_fields']))
                         <ul class="list-disc list-inside text-sm space-y-2">
-                            @foreach($registrationAnalysis['required_fields'] as $field)
+                            @foreach ($registrationAnalysis['required_fields'] as $field)
                                 <li>
                                     Type: <span class="text-blue-300">{{ $field['type'] }}</span>
                                     Name: <span class="text-green-300">{{ $field['name'] }}</span>
@@ -311,9 +326,9 @@
                     <h3 class="text-lg font-semibold mb-3 text-red-400">
                         <i class="fas fa-exclamation-triangle mr-2"></i>Suspicious Elements
                     </h3>
-                    @if(!empty($registrationAnalysis['suspicious_elements']))
+                    @if (!empty($registrationAnalysis['suspicious_elements']))
                         <ul class="list-disc list-inside text-sm space-y-2">
-                            @foreach($registrationAnalysis['suspicious_elements'] as $element)
+                            @foreach ($registrationAnalysis['suspicious_elements'] as $element)
                                 <li class="text-red-300">{{ $element['field'] }}</li>
                             @endforeach
                         </ul>
@@ -325,130 +340,113 @@
         </div>
 
         <!-- Detailed Analysis Section -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-    <!-- Backdoor Analysis -->
-    <div class="card p-6">
-        <h2 class="text-xl font-semibold mb-4">
-            <i class="fas fa-bug mr-2 text-red-400"></i>Backdoor Analysis
-        </h2>
-        <div class="space-y-4">
-            <div class="flex justify-between items-center">
-                <span class="text-gray-400">Risk Level</span>
-                <div class="risk-indicator {{
-                    $backdoorResult['risk_level'] == 'Tinggi' ? 'risk-high' :
-                    ($backdoorResult['risk_level'] == 'Sedang' ? 'risk-medium' : 'risk-low')
-                }}">
-                    {{ $backdoorResult['risk_level'] }}
+        <!-- resources/views/scanner/result.blade.php -->
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <!-- Backdoor Analysis -->
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold mb-4">
+                    <i class="fas fa-bug mr-2 text-red-400"></i>Backdoor Analysis
+                </h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Risk Level</span>
+                        <div
+                            class="risk-indicator {{ $backdoorResult['risk_level'] == 'Tinggi'
+                                ? 'risk-high'
+                                : ($backdoorResult['risk_level'] == 'Sedang'
+                                    ? 'risk-medium'
+                                    : 'risk-low') }}">
+                            {{ $backdoorResult['risk_level'] }}
+                        </div>
+                    </div>
+                    @if (!empty($backdoorResult['details']))
+                        <div class="mt-4">
+                            <a href="{{ route('backdoor.details') }}"
+                                class="toggle-button flex justify-between items-center bg-blue-500 text-white px-4 py-2 rounded-lg">
+                                <span>View Details</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </a>
+                        </div>
+                    @endif
                 </div>
             </div>
-        @if(!empty($backdoorResult['details']))
-        <div class="mt-4">
-            <div class="toggle-button flex justify-between items-center" onclick="toggleDetails('backdoor-details')">
-                <span>View Details</span>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div id="backdoor-details" class="details-section mt-2">
-                @foreach($backdoorResult['details'] as $key => $value)
-                    @if(is_array($value))
-                        <div class="mb-2">
-                            <h4 class="text-gray-400">{{ ucfirst(str_replace('_', ' ', $key)) }}</h4>
-                            <ul class="list-disc list-inside text-sm">
-                                @foreach($value as $item)
-                                    <li>{{ is_array($item) ? json_encode($item) : $item }}</li>
-                                @endforeach
-                            </ul>
+
+            <!-- Gambling Analysis -->
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold mb-4">
+                    <i class="fas fa-dice mr-2 text-yellow-400"></i>Gambling Analysis
+                </h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Risk Level</span>
+                        <div
+                            class="risk-indicator {{ $gamblingResult['risk_level'] == 'Tinggi'
+                                ? 'risk-high'
+                                : ($gamblingResult['risk_level'] == 'Sedang'
+                                    ? 'risk-medium'
+                                    : 'risk-low') }}">
+                            {{ $gamblingResult['risk_level'] }}
+                        </div>
+                    </div>
+                    @if (!empty($gamblingResult['analysis']))
+                        <div class="mt-4">
+                            <a href="{{ route('gambling.details') }}"
+                                class="toggle-button flex justify-between items-center bg-blue-500 text-white px-4 py-2 rounded-lg">
+                                <span>View Details</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </a>
                         </div>
                     @endif
-                @endforeach
-            </div>
-        </div>
-        @endif
-    </div>
-</div>
-
-<!-- Gambling Analysis -->
-<div class="card p-6">
-    <h2 class="text-xl font-semibold mb-4">
-        <i class="fas fa-dice mr-2 text-yellow-400"></i>Gambling Analysis
-    </h2>
-    <div class="space-y-4">
-        <div class="flex justify-between items-center">
-            <span class="text-gray-400">Risk Level</span>
-            <div class="risk-indicator {{
-                $gamblingResult['risk_level'] == 'Tinggi' ? 'risk-high' :
-                ($gamblingResult['risk_level'] == 'Sedang' ? 'risk-medium' : 'risk-low')
-            }}">
-                {{ $gamblingResult['risk_level'] }}
+                </div>
             </div>
         </div>
 
-        @if(!empty($gamblingResult['analysis']))
-        <div class="mt-4">
-            <div class="toggle-button flex justify-between items-center" onclick="toggleDetails('gambling-details')">
-                <span>View Details</span>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div id="gambling-details" class="details-section mt-2">
-                @foreach($gamblingResult['analysis'] as $key => $value)
-                    @if(is_array($value))
-                        <div class="mb-2">
-                            <h4 class="text-gray-400">{{ ucfirst(str_replace('_', ' ', $key)) }}</h4>
-                            <ul class="list-disc list-inside text-sm">
-                                @foreach($value as $item)
-                                    <li>{{ is_array($item) ? json_encode($item) : $item }}</li>
+
+        <!-- AI Recommendations Section -->
+        <div class="card p-6 mt-6">
+            <h2 class="text-xl font-semibold mb-4">
+                <i class="fas fa-robot mr-2 text-green-400"></i>AI Recommendations
+            </h2>
+            @if (is_array($aiRecommendation['recommendations']))
+                @foreach ($aiRecommendation['recommendations'] as $recommendation)
+                    <div class="recommendation-card">
+                        <h3 class="font-semibold mb-2">
+                            {{ is_array($recommendation) ? $recommendation['title'] : $recommendation }}</h3>
+                        @if (is_array($recommendation) && !empty($recommendation['actions']))
+                            <ul class="list-disc list-inside text-sm text-gray-300">
+                                @foreach ($recommendation['actions'] as $action)
+                                    <li>{{ $action }}</li>
                                 @endforeach
                             </ul>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 @endforeach
-            </div>
+            @else
+                <div class="recommendation-card">
+                    {{ $aiRecommendation }}
+                </div>
+            @endif
         </div>
-        @endif
-    </div>
-</div>
-</div>
-
-
-<!-- AI Recommendations Section -->
-<div class="card p-6 mt-6">
-    <h2 class="text-xl font-semibold mb-4">
-        <i class="fas fa-robot mr-2 text-green-400"></i>AI Recommendations
-    </h2>
-    @if(is_array($aiRecommendation['recommendations']))
-        @foreach($aiRecommendation['recommendations'] as $recommendation)
-            <div class="recommendation-card">
-                <h3 class="font-semibold mb-2">{{ is_array($recommendation) ? $recommendation['title'] : $recommendation }}</h3>
-                @if(is_array($recommendation) && !empty($recommendation['actions']))
-                    <ul class="list-disc list-inside text-sm text-gray-300">
-                        @foreach($recommendation['actions'] as $action)
-                            <li>{{ $action }}</li>
-                        @endforeach
-                    </ul>
-                @endif
-            </div>
-        @endforeach
-    @else
-        <div class="recommendation-card">
-            {{ $aiRecommendation }}
+        <!-- Action Buttons -->
+        <div class="flex justify-center gap-4 mt-8">
+            <a href="{{ route('scanner.index') }}"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 animate-pulse-slow">
+                <i class="fas fa-search mr-2"></i>Scan Another URL
+            </a>
+            <a href="{{ route('scanner.history') }}"
+                class="bg-gray-700 hover:bg-gray-800 text-white px-6 py-3 rounded-lg transition-colors duration-200">
+                <i class="fas fa-history mr-2"></i>View Scan History
+            </a>
         </div>
-    @endif
-</div>
-<!-- Action Buttons -->
-<div class="flex justify-center gap-4 mt-8">
-    <a href="{{ route('scanner.index') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 animate-pulse-slow">
-        <i class="fas fa-search mr-2"></i>Scan Another URL
-    </a>
-    <a href="{{ route('scanner.history') }}" class="bg-gray-700 hover:bg-gray-800 text-white px-6 py-3 rounded-lg transition-colors duration-200">
-        <i class="fas fa-history mr-2"></i>View Scan History
-    </a>
-</div>
-<script>
-    function toggleDetails(elementId) {
-        const element = document.getElementById(elementId);
-            element.classList.toggle('active');
-            const button = element.previousElementSibling;
-            const icon = button.querySelector('i');
-            icon.classList.toggle('fa-chevron-up');
-            icon.classList.toggle('fa-chevron-down');
-    }
-</script>
+        <script>
+            function toggleDetails(elementId) {
+                const element = document.getElementById(elementId);
+                element.classList.toggle('active');
+                const button = element.previousElementSibling;
+                const icon = button.querySelector('i');
+                icon.classList.toggle('fa-chevron-up');
+                icon.classList.toggle('fa-chevron-down');
+            }
+        </script>
+</body>
