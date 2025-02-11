@@ -109,7 +109,7 @@ class SecurityScannerController extends Controller
                 Log::error('AI Recommendation error: ' . $e->getMessage());
                 $aiRecommendation = [
                     'recommendations' => [
-                        '⚠️ Tidak dapat menghasilkan rekomendasi karena terjadi error pada analisis.'
+                        '⚠ Tidak dapat menghasilkan rekomendasi karena terjadi error pada analisis.'
                     ]
                 ];
             }

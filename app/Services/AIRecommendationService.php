@@ -31,7 +31,6 @@ class AIRecommendationService
 
             // Format final response
             return $this->formatRecommendations($recommendations, $analysis);
-
         } catch (\Exception $e) {
             Log::error('AI Recommendation Service error', [
                 'error' => $e->getMessage(),

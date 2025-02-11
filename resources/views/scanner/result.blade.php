@@ -24,6 +24,7 @@
             color: var(--text-primary);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .card {
@@ -32,8 +33,47 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 1rem;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease;
+            transition: all 0.3s ease;
         }
+
+        .risk-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+        }
+
+        /* Animations */
+        @keyframes cardEntrance {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .animate-card {
+            animation: cardEntrance 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .animate-delay-100 { animation-delay: 100ms; }
+        .animate-delay-200 { animation-delay: 200ms; }
 
         .card:hover {
             transform: translateY(-2px);
@@ -95,10 +135,6 @@
             cursor: pointer;
             padding: 0.5rem;
             border-radius: 0.5rem;
-            transition: background-color 0.2s ease;
-        }
-
-        .toggle-button:hover {
             background: rgba(255, 255, 255, 0.1);
         }
 
@@ -114,20 +150,16 @@
             }
         }
 
-        .scan-badge {
-            animation: pulse 2s infinite;
-        }
-
-        .tooltip {
-            @apply absolute z-10 p-2 -mt-2 text-sm text-white bg-gray-800 rounded-lg opacity-0 pointer-events-none transition-opacity duration-300;
-        }
-
-        .group:hover .tooltip {
-            @apply opacity-100;
-        }
-
-        .animate-pulse-slow {
-            animation: pulse 3s infinite;
+      
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         @keyframes fadeIn {
@@ -152,17 +184,19 @@
     <div class="max-w-7xl mx-auto animate-fade-in">
         <!-- Header Section -->
         <header class="text-center mb-8">
-            <div class="inline-block scan-badge bg-blue-600 text-white px-4 py-2 rounded-full mb-4">
-                <i class="fas fa-shield-alt mr-2"></i>Scan Complete
+            <div class="inline-block bg-blue-600 text-white px-4 py-2 rounded-full mb-4 animate-float">
+                <i class="fas fa-shield-alt mr-2 "></i>Scan Complete
             </div>
             <h1 class="text-4xl font-bold mb-2">Security Scan Results</h1>
             <p class="text-gray-400">Comprehensive analysis report for your URL</p>
         </header>
+        
+        
 
         <!-- Main Grid Layout -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-5 animate-card">
             <!-- Scan Overview Card -->
-            <div class="card p-6">
+            <div class="card p-6 hover:scale-110 transition-all">
                 <h2 class="text-xl font-semibold mb-4">
                     <i class="fas fa-info-circle mr-2 text-blue-400"></i>Scan Overview
                 </h2>
@@ -205,22 +239,24 @@
             </div>
         </div>
 
+        
         <!-- Network and Technical Analysis -->
-        <div class="card p-6 mt-6">
-            <h2 class="text-xl font-semibold mb-4 flex items-center">
-                <i class="fas fa-network-wired mr-2 text-green-400"></i>
-                Network & Technical Analysis
-                <span class="ml-2 group relative">
-                    <i class="fas fa-info-circle text-gray-500 cursor-pointer"></i>
-                    <span class="tooltip w-64 left-full ml-2">
-                        Detailed analysis of network indicators, hidden elements, and technical risks
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-5 animate-card">
+            <div class="card p-6 mt-6 hover:scale-150 transition-all">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fas fa-network-wired mr-2 text-green-400"></i>
+                    Network & Technical Analysis
+                    <span class="ml-2 group relative">
+                        <i class="fas fa-info-circle text-gray-500 cursor-pointer"></i>
+                        <span class="tooltip w-64 left-full ml-2">
+                            Detailed analysis of network indicators, hidden elements, and technical risks
+                        </span>
                     </span>
-                </span>
-            </h2>
+                </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Network Indicators -->
-                <div class="bg-gray-800 p-4 rounded-lg">
+                <div class="bg-gray-800 p-4 rounded-lg stat-card">
                     <h3 class="text-lg font-semibold mb-3 text-blue-400">
                         <i class="fas fa-globe-americas mr-2"></i>Network Indicators
                     </h3>
@@ -236,7 +272,7 @@
                 </div>
 
                 <!-- Hidden Elements -->
-                <div class="bg-gray-800 p-4 rounded-lg">
+                <div class="bg-gray-800 p-4 rounded-lg stat-card">
                     <h3 class="text-lg font-semibold mb-3 text-red-400">
                         <i class="fas fa-eye-slash mr-2"></i>Hidden Elements
                     </h3>
@@ -256,7 +292,7 @@
             </div>
 
             <!-- JavaScript & Redirect Analysis -->
-            <div class="mt-4 bg-gray-800 p-4 rounded-lg">
+            <div class="mt-4 bg-gray-800 p-4 rounded-lg stat-card">
                 <h3 class="text-lg font-semibold mb-3 text-purple-400">
                     <i class="fas fa-code mr-2"></i>JavaScript & Redirect Analysis
                 </h3>
@@ -291,7 +327,7 @@
         </div>
 
         <!-- Registration Flow Analysis -->
-        <div class="card p-6 mt-6">
+        <div class="card p-6 mt-6 hover:scale-120 transition-all">            
             <h2 class="text-xl font-semibold mb-4 flex items-center">
                 <i class="fas fa-user-plus mr-2 text-blue-400"></i>
                 Registration Flow Analysis
@@ -303,8 +339,8 @@
                 </span>
             </h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-gray-800 p-4 rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 ">
+                <div class="bg-gray-800 p-4 rounded-lg stat-card">
                     <h3 class="text-lg font-semibold mb-3 text-blue-400">
                         <i class="fas fa-file-alt mr-2"></i>Required Fields
                     </h3>
@@ -322,7 +358,7 @@
                     @endif
                 </div>
 
-                <div class="bg-gray-800 p-4 rounded-lg">
+                <div class="bg-gray-800 p-4 rounded-lg stat-card">
                     <h3 class="text-lg font-semibold mb-3 text-red-400">
                         <i class="fas fa-exclamation-triangle mr-2"></i>Suspicious Elements
                     </h3>
