@@ -10,16 +10,23 @@
         "graham-campbell/security": "^11.2",
         "guzzlehttp/guzzle": "^7.9",
         "jenssegers/agent": "^2.6",
+        "laravel-notification-channels/telegram": "^5.0",
         "laravel/framework": "^11.0",
         "laravel/octane": "^2.6",
         "laravel/sanctum": "^4.0",
+        "laravel/slack-notification-channel": "^3.4",
+        "laravel/telescope": "^5.4",
         "laravel/tinker": "^2.9",
+        "livewire/livewire": "^3.5",
         "openai-php/laravel": "^0.10.2",
         "predis/predis": "^2.3",
+        "pusher/pusher-php-server": "^7.0",
         "sentry/sentry-laravel": "*",
         "spatie/crawler": "^8.4",
+        "spatie/ssl-certificate": "^2.6",
         "symfony/css-selector": "^7.2",
-        "symfony/dom-crawler": "^7.2"
+        "symfony/dom-crawler": "^7.2",
+        "telegram-bot/api": "^2.5"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -28,7 +35,8 @@
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.0",
         "phpunit/phpunit": "^10.5",
-        "spatie/laravel-ignition": "^2.4"
+        "spatie/laravel-ignition": "^2.4",
+        "phpstan/phpstan": "^1.10"
     },
     "autoload": {
         "psr-4": {

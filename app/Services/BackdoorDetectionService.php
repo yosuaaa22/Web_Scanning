@@ -2032,6 +2032,8 @@ class BackdoorDetectionService
         }
 
         return array_sum($similarities) / count($similarities);
+
+        return array_sum($similarities) / count($similarities);
     }
 
     private function calculatePatternSimilarity($pattern1, $pattern2)
@@ -2087,15 +2089,60 @@ class BackdoorDetectionService
 
             $aggregatedScore += $finalScore * $categoryWeight;
             $totalWeight += $categoryWeight;
+        foreach ($confidenceFactors as $category => $factors) {
+            $categoryWeight = $this->riskWeights[$category] ?? 1;
+
+            $compositeScore = (
+                $factors['base_confidence'] * 0.4 +
+                $factors['pattern_complexity'] * 100 * 0.3 +
+                $factors['consistency_score'] * 100 * 0.3
+            );
+
+            $patternBonus = log($factors['unique_patterns'] + 1, 2) * 0.1;
+            $finalScore = min(100, $compositeScore * (1 + $patternBonus));
+
+            $aggregatedScore += $finalScore * $categoryWeight;
+            $totalWeight += $categoryWeight;
         }
 
+        return $totalWeight > 0 ? round($aggregatedScore / $totalWeight, 2) : 0;
         return $totalWeight > 0 ? round($aggregatedScore / $totalWeight, 2) : 0;
     }
 
 
 
+
+
     private function enhancedScriptAnalysis(Crawler $crawler)
     {
+        $scriptRisks = [
+            'inline_scripts' => [],
+            'external_scripts' => [],
+            'dangerous_patterns' => [],
+            'obfuscation_attempts' => [],
+            'event_handlers' => []
+        ];
+
+        $crawler->filter('script')->each(function ($node) use (&$scriptRisks) {
+            $content = $node->attr('src') ?? $node->text();
+            $href = $node->attr('src');
+
+            // Analisis skrip inline
+            if (!$href) {
+                $this->analyzeInlineScript($content, $scriptRisks);
+            } else {
+                $this->analyzeExternalScript($href, $scriptRisks);
+            }
+        });
+
+        // Analisis event handler untuk semua elemen
+        $crawler->filter('*[onclick], *[onload], *[onmouseover], *[onfocus]')->each(
+            function ($node) use (&$scriptRisks) {
+                $this->analyzeEventHandlers($node, $scriptRisks);
+            }
+        );
+
+        return array_filter($scriptRisks);
         $scriptRisks = [
             'inline_scripts' => [],
             'external_scripts' => [],
