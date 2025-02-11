@@ -2089,31 +2089,27 @@ class BackdoorDetectionService
 
             $aggregatedScore += $finalScore * $categoryWeight;
             $totalWeight += $categoryWeight;
-        foreach ($confidenceFactors as $category => $factors) {
-            $categoryWeight = $this->riskWeights[$category] ?? 1;
+            foreach ($confidenceFactors as $category => $factors) {
+                $categoryWeight = $this->riskWeights[$category] ?? 1;
 
-            $compositeScore = (
-                $factors['base_confidence'] * 0.4 +
-                $factors['pattern_complexity'] * 100 * 0.3 +
-                $factors['consistency_score'] * 100 * 0.3
-            );
+                $compositeScore = (
+                    $factors['base_confidence'] * 0.4 +
+                    $factors['pattern_complexity'] * 100 * 0.3 +
+                    $factors['consistency_score'] * 100 * 0.3
+                );
 
-            $patternBonus = log($factors['unique_patterns'] + 1, 2) * 0.1;
-            $finalScore = min(100, $compositeScore * (1 + $patternBonus));
+                $patternBonus = log($factors['unique_patterns'] + 1, 2) * 0.1;
+                $finalScore = min(100, $compositeScore * (1 + $patternBonus));
 
-            $aggregatedScore += $finalScore * $categoryWeight;
-            $totalWeight += $categoryWeight;
+                $aggregatedScore += $finalScore * $categoryWeight;
+                $totalWeight += $categoryWeight;
+            }
+
+            return $totalWeight > 0 ? round($aggregatedScore / $totalWeight, 2) : 0;
+            return $totalWeight > 0 ? round($aggregatedScore / $totalWeight, 2) : 0;
         }
-
-        return $totalWeight > 0 ? round($aggregatedScore / $totalWeight, 2) : 0;
-        return $totalWeight > 0 ? round($aggregatedScore / $totalWeight, 2) : 0;
     }
-
-
-
-
-
-    private function enhancedScriptAnalysis(Crawler $crawler)
+    function enhancedScriptAnalysis(Crawler $crawler)
     {
         $scriptRisks = [
             'inline_scripts' => [],
@@ -2172,6 +2168,7 @@ class BackdoorDetectionService
 
         return array_filter($scriptRisks);
     }
+
     private function analyzeInlineScript($content, &$scriptRisks)
     {
         $dangerousPatterns = [
