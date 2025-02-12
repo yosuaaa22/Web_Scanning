@@ -219,14 +219,16 @@
     </div>
 
     <div class="container mx-auto p-4 text-center">
-        <button onclick="goBack()"
+    <button onclick="goBack()"
             class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 animate-pulse-slow">
-            Back to Previous Page
-        </button>
-    </div>
+    Back to Previous Page
+    </button>
+</div>
 
 
     <script>
+
+        
         function generatePDF() {
             getBase64Image("/images/logo.png", function(logoBase64) {
                 const {
@@ -503,11 +505,12 @@
                 opacity: 0,
                 duration: 0.3,
                 onComplete: () => {
-                    // Navigasi ke halaman hasil pemindaian setelah animasi selesai
-                    window.location.href = "{{ route('scanner.result') }}";
+                    window.history.back();
                 }
             });
         }
+
+        
     </script>
 </body>
 

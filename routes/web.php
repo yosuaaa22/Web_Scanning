@@ -7,6 +7,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PerformanceMetricController;
 use App\Http\Controllers\WebsiteMonitorController;
 use App\Http\Controllers\SecurityController;
+use App\Http\Controllers\TelegramController;
 
 // Public Routes
 Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
