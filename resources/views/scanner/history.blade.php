@@ -8,6 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
     <style>
         * {
@@ -508,13 +510,16 @@
                     Riwayat Scanning
                 </h1>
                 <div class="button-container">
+                    <form id="downloadForm" action="{{ route('scanner.history.download') }}" method="GET" class="inline">
+                        @csrf
+                        <button type="submit" class="btn btn-download" onclick="showDownloadAlert()">
+                            <i class="fas fa-download"></i>
+                            Download PDF
+                        </button>
+                    </form>
                     <a href="{{ route('scanner.index') }}" class="btn btn-scan">
                         <i class="fas fa-search"></i>
                         Scanner
-                    </a>
-                    <a href="{{ route('scanner.history.download') }}" class="btn btn-download">
-                        <i class="fas fa-download"></i>
-                        Download PDF
                     </a>
                 </div>
             </div>
@@ -626,7 +631,41 @@
                 }
             }
         `;
+
+
         document.head.appendChild(style);
+
+        function showDownloadAlert() {
+            event.preventDefault(); // Prevent form submission
+            
+            Swal.fire({
+                title: 'Memulai Download',
+                text: 'File PDF sedang dipersiapkan...',
+                icon: 'info',
+                showCancelButton: false,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                willOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Submit the form after showing the alert
+            setTimeout(() => {
+                document.getElementById('downloadForm').submit();
+                
+                // Show success message after a brief delay
+                setTimeout(() => {
+                    Swal.fire({
+                        title: 'Berhasil!',
+                        text: 'File PDF berhasil didownload',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }, 1000);
+            }, 1500);
+        }
     </script>
 </body>
 </html>

@@ -37,7 +37,7 @@ class LoginController extends Controller
             $request->session()->regenerate();
 
             // Redirect ke halaman scanner
-            return redirect()->intended(route('scanner.index'));
+            return redirect()->route('scanner.index');
         }
 
         // Jika gagal

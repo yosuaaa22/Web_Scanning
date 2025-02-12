@@ -52,7 +52,7 @@
             z-index: 0;
         }
 
-        .neon-line {
+        /* .neon-line {
             position: absolute;
             top: -20%;
             left: 50%;
@@ -69,7 +69,7 @@
             z-index: 1;
             animation: neonPulse 1.5s infinite alternate;
             pointer-events: none;
-        }
+        } */
 
         .content-container {
             position: relative;
@@ -471,10 +471,9 @@
         <div class="content-container">
             <div class="login-side" id="loginSide">
                 <div class="login-box">
-                    <h1 class="login-title">LOGIN</h1>
                     <form id="loginForm" method="POST" action="{{ route('login') }}">
                         @csrf
-                        @csrf
+                        <h1 class="login-title">LOGIN</h1>
                         <div class="input-group">
                             <input type="text" name="username" required>
                             <label>Username</label>
@@ -493,7 +492,7 @@
                             <div class="input-group-border-left"></div>
                             <div class="input-group-border-right"></div>
                             <button type="button" class="toggle-password">
-                                <i class="show-icon">👁️</i>
+                                <i class="show-icon">👁</i>
                             </button>
                             @error('password')
                                 <span class="error-message">{{ $message }}</span>
@@ -530,10 +529,10 @@
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                icon.textContent = '👁️‍🗨️';
+                icon.textContent = '👁‍🗨';
             } else {
                 passwordInput.type = 'password';
-                icon.textContent = '👁️';
+                icon.textContent = '👁';
             }
             
             icon.style.animation = 'none';
@@ -543,26 +542,25 @@
 
         // Form Submit Animation
         document.getElementById('loginForm').addEventListener('submit', function(e) {
-    // Jangan hentikan form submission
-    // e.preventDefault();
+    e.preventDefault(); // Hentikan submit sementara
     
-        const btn = this.querySelector('.login-btn');
-        const btnText = btn.querySelector('.btn-text');
-        const btnLoader = btn.querySelector('.btn-loader');
-        
-        btn.disabled = true;
-        btnText.style.opacity = '0';
-        btnLoader.style.display = 'block';
-        
-        // Animasi input fields
-        const inputs = this.querySelectorAll('.input-group');
-        inputs.forEach((input, index) => {
-            setTimeout(() => {
-                input.style.transform = 'translateX(-100%)';
-                input.style.opacity = '0';
-                input.style.transition = 'all 2s ease';
-            }, index * 100);
-        });
+    const btn = this.querySelector('.login-btn');
+    const btnText = btn.querySelector('.btn-text');
+    const btnLoader = btn.querySelector('.btn-loader');
+    
+    btn.disabled = true;
+    btnText.style.opacity = '0';
+    btnLoader.style.display = 'block';
+    
+    // Animasi input fields
+    const inputs = this.querySelectorAll('.input-group');
+    inputs.forEach((input, index) => {
+        setTimeout(() => {
+            input.style.transform = 'translateX(-100%)';
+            input.style.opacity = '0';
+            input.style.transition = 'all 2s ease';
+        }, index * 100);
+    });
 
     // Matikan animasi neon
     const neonLine = document.querySelector('.neon-line');
@@ -590,13 +588,12 @@
     tl.to(['.background-right', '#welcomeSide'], {
         x: '100%',
     }, 0);
-            
-            // Set timeout untuk redirect agar animasi terlihat
-            setTimeout(() => {
-                window.location.href = '/scanner';
-            }, 800);
-        });
-
+    
+    // Submit form setelah animasi
+    setTimeout(() => {
+        this.submit(); // Submit form secara normal
+    }, 800);
+});
         // Input Focus Animations
         document.querySelectorAll('.input-group input').forEach(input => {
             input.addEventListener('focus', function() {

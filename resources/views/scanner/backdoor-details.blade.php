@@ -12,7 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         .wrap-content {
@@ -105,7 +105,7 @@
         }
 
         .header-gradient {
-            background: linear-gradient(135deg, #4F46E5 0%, #2563EB 100%);
+            background: #116b92;
         }
 
         .back-button {
@@ -219,13 +219,16 @@
     </div>
 
     <div class="container mx-auto p-4 text-center">
-        <button onclick="goBack()"
-            class="back-button bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg shadow-md hover:from-blue-700 hover:to-blue-800 font-medium">
-            Back to Previous Page
-        </button>
-    </div>
+    <button onclick="goBack()"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 animate-pulse-slow">
+    Back to Previous Page
+    </button>
+</div>
+
 
     <script>
+
+        
         function generatePDF() {
             getBase64Image("/images/logo.png", function(logoBase64) {
                 const {
@@ -241,6 +244,16 @@
                 doc.setFillColor(41, 58, 74); // Dark blue base color
                 doc.rect(0, 0, pageWidth, headerHeight, 'F');
 
+
+                doc.save("Laporan-Analisis-Backdoor.pdf");
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Download Berhasil!',
+                    text: 'Laporan PDF telah berhasil diunduh.',
+                    confirmButtonColor: '#2563eb',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
                 // Add logo with proper spacing
                 const logoSize = 40;
                 const logoMargin = 15;
@@ -496,6 +509,8 @@
                 }
             });
         }
+
+        
     </script>
 </body>
 
