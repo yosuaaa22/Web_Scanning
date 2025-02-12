@@ -137,10 +137,13 @@ class SecurityScannerController extends Controller
                 Log::error('AI Recommendation error: ' . $e->getMessage());
                 $aiRecommendation = [
                     'recommendations' => [
-                        '⚠️ Tidak dapat menghasilkan rekomendasi karena terjadi error pada analisis.'
+                        '⚠ Tidak dapat menghasilkan rekomendasi karena terjadi error pada analisis.'
                     ]
                 ];
             }
+
+            session(['backdoorResult' => $backdoorResult]);
+            session(['gamblingResult' => $gamblingResult]);
 
             return view('scanner.result', [
                 'scanResult' => $scanResult,
@@ -153,7 +156,6 @@ class SecurityScannerController extends Controller
                 'redirectAnalysis' => $enhancedAnalysis['redirect_analysis'],
                 'registrationAnalysis' => $enhancedAnalysis['registration_analysis']
             ]);
-
         } catch (\Exception $e) {
             Log::error('Scanning Error', [
                 'message' => $e->getMessage(),
@@ -173,74 +175,49 @@ class SecurityScannerController extends Controller
         return view('scanner.history', compact('scanResults'));
     }
 
-    private function sendNotifications($scanResult, $history)
+    public function showBackdoorDetails()
     {
-        try {
-            // Kirim notifikasi email untuk risiko kritikal
-            if ($history->risk_level === 'Critical') {
-                Mail::to(config('mail.admin_email'))->send(
-                    new CriticalVulnerabilityAlert($scanResult)
-                );
-            }
+        // Ambil data dari session atau database
+        $backdoorResult = session('backdoorResult');
 
-            // Kirim notifikasi Telegram melalui method notify() pada model ScanResult
-            $scanResult->notify(new TelegramAlert("Scan pada URL {$scanResult->url} selesai. Risiko: {$history->risk_level}"));
+        
 
-        } catch (\Exception $e) {
-            Log::error('Notification failed: ' . $e->getMessage());
-        }
+        $descriptions = [
+            'dangerous_patterns' => [
+                'cookie_manipulation' => 'Mengakses atau memanipulasi cookie browser, sering digunakan untuk mencuri sesi pengguna.',
+                'storage_access' => 'Mengakses atau memodifikasi penyimpanan lokal browser, bisa digunakan untuk menyimpan data sensitif.',
+                'script_injection' => 'Memodifikasi sumber elemen, misalnya elemen <script>, yang bisa digunakan untuk menyisipkan skrip berbahaya.',
+                'window_manipulation' => 'Mengubah lokasi jendela browser, sering digunakan untuk phishing atau redirect mencurigakan.',
+                'dynamic_script' => 'Membuat elemen skrip secara dinamis, bisa digunakan untuk menjalankan kode yang tidak sah.',
+            ],
+            'obfuscation_attempts' => [
+                'high_entropy' => 'Skrip memiliki kompleksitas tinggi, sering kali digunakan untuk menyamarkan kode berbahaya.',
+                'unicode_escape' => 'Menggunakan karakter Unicode untuk menyembunyikan skrip, teknik yang sering digunakan dalam eksploitasi.',
+            ],
+        ];
+        // dd($descriptions);
+        return view('scanner.backdoor-details', compact('backdoorResult', 'descriptions'));
+        
     }
 
-    private function calculateOverallRisk(...$risks)
+    public function showGamblingDetails()
     {
-        $levels = ['Low' => 1, 'Medium' => 2, 'High' => 3, 'Critical' => 4];
-        $max = max(array_map(fn($r) => $levels[$r] ?? 0, $risks));
-        return array_flip($levels)[$max] ?? 'Unknown';
+        $descriptions = [
+            'dangerous_patterns' => [
+                'cookie_manipulation' => 'Mengakses atau memanipulasi cookie browser, sering digunakan untuk mencuri sesi pengguna.',
+                'storage_access' => 'Mengakses atau memodifikasi penyimpanan lokal browser, bisa digunakan untuk menyimpan data sensitif.',
+                'script_injection' => 'Memodifikasi sumber elemen, misalnya elemen <script>, yang bisa digunakan untuk menyisipkan skrip berbahaya.',
+                'window_manipulation' => 'Mengubah lokasi jendela browser, sering digunakan untuk phishing atau redirect mencurigakan.',
+                'dynamic_script' => 'Membuat elemen skrip secara dinamis, bisa digunakan untuk menjalankan kode yang tidak sah.',
+            ],
+            'obfuscation_attempts' => [
+                'high_entropy' => 'Skrip memiliki kompleksitas tinggi, sering kali digunakan untuk menyamarkan kode berbahaya.',
+                'unicode_escape' => 'Menggunakan karakter Unicode untuk menyembunyikan skrip, teknik yang sering digunakan dalam eksploitasi.',
+            ],
+        ];
+        // Ambil data dari session atau database
+        $gamblingResult = session('gamblingResult');
+
+        return view('scanner.gambling-details', compact('gamblingResult', 'descriptions'));
     }
-
-    private function compileThreats(...$results)
-    {
-        return collect($results)
-            ->map(fn($r) => $r['detected'] ?? [])
-            ->flatten()
-            ->unique()
-            ->values()
-            ->toArray();
-    }
-
-    private function getPerformanceData()
-    {
-        try {
-            return [
-                'memory_usage' => memory_get_usage(true),
-                'timestamp' => now()->timestamp,
-                'scan_duration' => microtime(true) - LARAVEL_START
-            ];
-        } catch (\Exception $e) {
-            Log::error('Performance data collection failed: ' . $e->getMessage());
-            return [
-                'error' => 'Performance data unavailable',
-                'timestamp' => now()->timestamp
-            ];
-        }
-    }
-    public function showResult()
-
-{
-
-    // Ambil hasil scan terakhir atau semua hasil scan
-
-    $scanResults = ScanResult::latest()->take(10)->get();
-
-    
-
-    return view('scanner.result', [
-
-        'scanResults' => $scanResults
-
-    ]);
-
-}
-
-  
 }

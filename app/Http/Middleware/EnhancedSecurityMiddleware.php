@@ -26,8 +26,19 @@ class EnhancedSecurityMiddleware
             abort(403, 'Permintaan tidak sah.');
         }
 
-        // Validasi IP untuk API
-        if (!$this->validateClientIP($request)) {
+        // Batasi akses berdasarkan IP
+        $allowedIPs = [
+            '127.0.0.1',  // localhost
+            '::1',        // localhost IPv6
+            '192.168.56.1',// Tambahkan IP yang diizinkan
+            '10.159.235.176',
+            '192.168.56.1',
+            '192.168.18.12'
+        ];
+
+        $currentIP = $request->ip();
+
+        if (!in_array($currentIP, $allowedIPs)) {
             Log::warning('Unauthorized IP access attempt', [
                 'ip' => $request->ip(),
                 'url' => $request->fullUrl()

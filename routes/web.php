@@ -33,6 +33,9 @@ Route::get('/scanner/result', function() {
     return redirect()->route('scanner.index')->with('error', 'Tidak ada hasil scan yang tersedia');
 })->name('scanner.result');
     });
+    Route::post('scanner/scan', [SecurityScannerController::class, 'scan'])
+        ->name('scanner.scan')
+        ->middleware(['throttle:10,1', 'security.scan']);  // Using the SecurityScanMiddleware
 
 
     // Performance Monitoring

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use GuzzleHttp\Client;
@@ -105,7 +106,6 @@ class GamblingDetectionService
             Cache::put($cacheKey, $result, self::CACHE_TTL);
 
             return $result;
-
         } catch (\Exception $e) {
             Log::error('Gambling detection error: ' . $e->getMessage(), [
                 'url' => $url,
@@ -203,22 +203,22 @@ class GamblingDetectionService
         ];
     }
 
-   // Perlu menambahkan pemanggilan di method analyzeContent()
-private function analyzeContent($html, Crawler $crawler)
-{
-    $contentAnalysis = [
-        'gambling_keywords' => $this->detectGamblingKeywords($html),
-        'suspicious_domains' => $this->checkSuspiciousDomains($crawler),
-        'financial_indicators' => $this->analyzeFinancialContent($html),
-        'betting_analysis' => $this->analyzeBettingTerms($html), // Gunakan method baru
-        'promo_analysis' => $this->analyzePromotionalContent($html),
-        'text_sentiment' => $this->analyzeSentiment($crawler)
-    ];
+    // Perlu menambahkan pemanggilan di method analyzeContent()
+    private function analyzeContent($html, Crawler $crawler)
+    {
+        $contentAnalysis = [
+            'gambling_keywords' => $this->detectGamblingKeywords($html),
+            'suspicious_domains' => $this->checkSuspiciousDomains($crawler),
+            'financial_indicators' => $this->analyzeFinancialContent($html),
+            'betting_analysis' => $this->analyzeBettingTerms($html), // Gunakan method baru
+            'promo_analysis' => $this->analyzePromotionalContent($html),
+            'text_sentiment' => $this->analyzeSentiment($crawler)
+        ];
 
-    $contentAnalysis['meta_analysis'] = $this->analyzeMetaInformation($crawler);
+        $contentAnalysis['meta_analysis'] = $this->analyzeMetaInformation($crawler);
 
-    return $contentAnalysis;
-}
+        return $contentAnalysis;
+    }
 
     private function detectGamblingKeywords($html)
     {
@@ -428,8 +428,17 @@ private function analyzeContent($html, Crawler $crawler)
                 if (isset($parsedUrl['query'])) {
                     parse_str($parsedUrl['query'], $params);
                     $suspiciousParams = [
-                        'ref', 'referral', 'affiliate', 'partner', 'bonus', 'promo',
-                        'source', 'campaign', 'track', 'id', 'sub'
+                        'ref',
+                        'referral',
+                        'affiliate',
+                        'partner',
+                        'bonus',
+                        'promo',
+                        'source',
+                        'campaign',
+                        'track',
+                        'id',
+                        'sub'
                     ];
 
                     foreach ($suspiciousParams as $param) {
@@ -445,9 +454,11 @@ private function analyzeContent($html, Crawler $crawler)
                 }
 
                 // Cek redirect links
-                if (strpos($href, 'redirect') !== false ||
+                if (
+                    strpos($href, 'redirect') !== false ||
                     strpos($href, 'go') !== false ||
-                    strpos($href, 'link') !== false) {
+                    strpos($href, 'link') !== false
+                ) {
                     $analysis['redirect_domains'][] = [
                         'domain' => $domain,
                         'full_url' => $href
@@ -537,147 +548,147 @@ private function analyzeContent($html, Crawler $crawler)
     }
 
     private function analyzeFinancialContent($html)
-{
-    $analysis = [
-        'payment_methods' => [],
-        'transaction_patterns' => [],
-        'currency_indicators' => [],
-        'crypto_analysis' => [], // Akan diisi oleh verifikasiCrypto
-        'risk_score' => 0
-    ];
+    {
+        $analysis = [
+            'payment_methods' => [],
+            'transaction_patterns' => [],
+            'currency_indicators' => [],
+            'crypto_analysis' => [], // Akan diisi oleh verifikasiCrypto
+            'risk_score' => 0
+        ];
 
-    // Deteksi metode pembayaran dengan pattern yang ditingkatkan
-    $paymentPatterns = [
-        'bank_transfer' => [
-            '/bank\s*(transfer|bca|bni|bri|mandiri|cimb|danamon|permata)/i',
-            '/virtual\s*account|va\s*number/i',
-            '/rekening\s*(bank|transfer|deposit)/i',
-            '/(?:rek|norek|no\.?\s*rek)\s*\d{10,16}/i' // Nomor rekening pattern
-        ],
-        'e_wallet' => [
-            '/(ovo|gopay|dana|linkaja|shopeepay|sakuku)/i',
-            '/e[-\s]wallet|dompet\s*digital/i',
-            '/qris|quick\s*response\s*code/i',
-            '/scan\s*(?:untuk|to)\s*(?:bayar|pay)/i'
-        ],
-        'crypto' => [
-            '/(bitcoin|ethereum|usdt|crypto|bnb|dogecoin)/i',
-            '/blockchain|wallet\s*address/i',
-            '/(?:btc|eth|usdt|doge|bnb)\s*address/i',
-            // Bitcoin address patterns
-            '/([13]|bc1)[A-HJ-NP-Za-km-z1-9]{25,39}/i',
-            // Ethereum address pattern
-            '/0x[a-fA-F0-9]{40}/i',
-            // USDT TRC20 address pattern
-            '/T[A-Za-z1-9]{33}/i'
-        ],
-        'pulsa' => [
-            '/pulsa|telkomsel|xl|indosat|tri|smartfren/i',
-            '/top[-\s]?up|isi\s*ulang/i',
-            '/nomor\s*(?:hp|telepon|seluler)/i'
-        ]
-    ];
+        // Deteksi metode pembayaran dengan pattern yang ditingkatkan
+        $paymentPatterns = [
+            'bank_transfer' => [
+                '/bank\s*(transfer|bca|bni|bri|mandiri|cimb|danamon|permata)/i',
+                '/virtual\s*account|va\s*number/i',
+                '/rekening\s*(bank|transfer|deposit)/i',
+                '/(?:rek|norek|no\.?\s*rek)\s*\d{10,16}/i' // Nomor rekening pattern
+            ],
+            'e_wallet' => [
+                '/(ovo|gopay|dana|linkaja|shopeepay|sakuku)/i',
+                '/e[-\s]wallet|dompet\s*digital/i',
+                '/qris|quick\s*response\s*code/i',
+                '/scan\s*(?:untuk|to)\s*(?:bayar|pay)/i'
+            ],
+            'crypto' => [
+                '/(bitcoin|ethereum|usdt|crypto|bnb|dogecoin)/i',
+                '/blockchain|wallet\s*address/i',
+                '/(?:btc|eth|usdt|doge|bnb)\s*address/i',
+                // Bitcoin address patterns
+                '/([13]|bc1)[A-HJ-NP-Za-km-z1-9]{25,39}/i',
+                // Ethereum address pattern
+                '/0x[a-fA-F0-9]{40}/i',
+                // USDT TRC20 address pattern
+                '/T[A-Za-z1-9]{33}/i'
+            ],
+            'pulsa' => [
+                '/pulsa|telkomsel|xl|indosat|tri|smartfren/i',
+                '/top[-\s]?up|isi\s*ulang/i',
+                '/nomor\s*(?:hp|telepon|seluler)/i'
+            ]
+        ];
 
-    foreach ($paymentPatterns as $type => $patterns) {
-        $analysis['payment_methods'][$type] = [];
-        foreach ($patterns as $pattern) {
+        foreach ($paymentPatterns as $type => $patterns) {
+            $analysis['payment_methods'][$type] = [];
+            foreach ($patterns as $pattern) {
+                if (preg_match_all($pattern, $html, $matches)) {
+                    $analysis['payment_methods'][$type] = array_merge(
+                        $analysis['payment_methods'][$type],
+                        array_unique($matches[0])
+                    );
+
+                    // Bobot risiko berbeda untuk setiap tipe pembayaran
+                    $riskWeights = [
+                        'bank_transfer' => 2,
+                        'e_wallet' => 2,
+                        'crypto' => 4, // Crypto memiliki bobot lebih tinggi
+                        'pulsa' => 1
+                    ];
+
+                    $analysis['risk_score'] += $riskWeights[$type] ?? 2;
+                }
+            }
+        }
+
+        // Deteksi pola transaksi mencurigakan yang diperluas
+        $transactionPatterns = [
+            // Deposit patterns
+            '/min(?:imal|imum)?\s*deposit\s*\d+[k\s]*/i',
+            '/deposit\s*\d+\s*(?:ribu|rb|k|juta|jt|m)\b/i',
+            '/deposit\s*(?:pertama|awal)\s*\d+[k\s]*/i',
+            '/setor\s*dana\s*\d+[k\s]*/i',
+
+            // Withdraw patterns
+            '/max(?:imal|imum)?\s*withdraw\s*\d+[k\s]*/i',
+            '/withdraw\s*\d+\s*(?:ribu|rb|k|juta|jt|m)\b/i',
+            '/penarikan\s*(?:dana|uang)\s*\d+[k\s]*/i',
+            '/tarik\s*dana\s*\d+[k\s]*/i',
+
+            // Processing time patterns
+            '/proses?\s*\d+\s*menit/i',
+            '/instant\s*withdrawal|withdraw\s*instan/i',
+            '/proses\s*(?:cepat|kilat|express)/i',
+            '/\d+\s*menit\s*proses/i'
+        ];
+
+        foreach ($transactionPatterns as $pattern) {
             if (preg_match_all($pattern, $html, $matches)) {
-                $analysis['payment_methods'][$type] = array_merge(
-                    $analysis['payment_methods'][$type],
+                $analysis['transaction_patterns'] = array_merge(
+                    $analysis['transaction_patterns'],
                     array_unique($matches[0])
                 );
 
-                // Bobot risiko berbeda untuk setiap tipe pembayaran
-                $riskWeights = [
-                    'bank_transfer' => 2,
-                    'e_wallet' => 2,
-                    'crypto' => 4, // Crypto memiliki bobot lebih tinggi
-                    'pulsa' => 1
-                ];
-
-                $analysis['risk_score'] += $riskWeights[$type] ?? 2;
+                // Tingkatkan risk score berdasarkan pola yang ditemukan
+                if (strpos(strtolower($pattern), 'deposit') !== false) {
+                    $analysis['risk_score'] += 3;
+                } elseif (strpos(strtolower($pattern), 'withdraw') !== false) {
+                    $analysis['risk_score'] += 3;
+                } else {
+                    $analysis['risk_score'] += 2;
+                }
             }
         }
-    }
 
-    // Deteksi pola transaksi mencurigakan yang diperluas
-    $transactionPatterns = [
-        // Deposit patterns
-        '/min(?:imal|imum)?\s*deposit\s*\d+[k\s]*/i',
-        '/deposit\s*\d+\s*(?:ribu|rb|k|juta|jt|m)\b/i',
-        '/deposit\s*(?:pertama|awal)\s*\d+[k\s]*/i',
-        '/setor\s*dana\s*\d+[k\s]*/i',
+        // Deteksi indikator mata uang yang diperluas
+        $currencyPatterns = [
+            // Rupiah patterns
+            '/rp\s*\d+[\d.,]*\s*(?:ribu|rb|k|juta|jt|m|miliar|b)\b/i',
+            '/idr\s*\d+[\d.,]*\s*(?:k|m|b)\b/i',
+            '/\d+[\d.,]*\s*(?:ribu|rb|k|juta|jt|m|miliar|b)\s*rupiah\b/i',
 
-        // Withdraw patterns
-        '/max(?:imal|imum)?\s*withdraw\s*\d+[k\s]*/i',
-        '/withdraw\s*\d+\s*(?:ribu|rb|k|juta|jt|m)\b/i',
-        '/penarikan\s*(?:dana|uang)\s*\d+[k\s]*/i',
-        '/tarik\s*dana\s*\d+[k\s]*/i',
+            // Dollar patterns
+            '/\$\s*\d+[\d.,]*\s*(?:k|m|b)\b/i',
+            '/usd\s*\d+[\d.,]*\s*(?:k|m|b)\b/i',
 
-        // Processing time patterns
-        '/proses?\s*\d+\s*menit/i',
-        '/instant\s*withdrawal|withdraw\s*instan/i',
-        '/proses\s*(?:cepat|kilat|express)/i',
-        '/\d+\s*menit\s*proses/i'
-    ];
+            // Crypto currency patterns
+            '/(?:btc|eth|usdt)\s*\d+(?:\.\d+)?/i',
+            '/\d+(?:\.\d+)?\s*(?:bitcoin|ethereum|tether)/i'
+        ];
 
-    foreach ($transactionPatterns as $pattern) {
-        if (preg_match_all($pattern, $html, $matches)) {
-            $analysis['transaction_patterns'] = array_merge(
-                $analysis['transaction_patterns'],
-                array_unique($matches[0])
-            );
+        foreach ($currencyPatterns as $pattern) {
+            if (preg_match_all($pattern, $html, $matches)) {
+                $analysis['currency_indicators'] = array_merge(
+                    $analysis['currency_indicators'],
+                    array_unique($matches[0])
+                );
 
-            // Tingkatkan risk score berdasarkan pola yang ditemukan
-            if (strpos(strtolower($pattern), 'deposit') !== false) {
-                $analysis['risk_score'] += 3;
-            } elseif (strpos(strtolower($pattern), 'withdraw') !== false) {
-                $analysis['risk_score'] += 3;
-            } else {
-                $analysis['risk_score'] += 2;
+                // Tingkatkan risk score berdasarkan tipe mata uang
+                if (preg_match('/(btc|eth|usdt|bitcoin|ethereum|tether)/i', $pattern)) {
+                    $analysis['risk_score'] += 2; // Skor lebih tinggi untuk crypto
+                } else {
+                    $analysis['risk_score'] += 1;
+                }
             }
         }
+
+        // Tambahkan analisis crypto yang lebih mendalam
+        $cryptoAnalysis = $this->verifyCryptoTransactions($html);
+        $analysis['crypto_analysis'] = $cryptoAnalysis;
+        $analysis['risk_score'] += $cryptoAnalysis['risk_score'];
+
+        return $analysis;
     }
-
-    // Deteksi indikator mata uang yang diperluas
-    $currencyPatterns = [
-        // Rupiah patterns
-        '/rp\s*\d+[\d.,]*\s*(?:ribu|rb|k|juta|jt|m|miliar|b)\b/i',
-        '/idr\s*\d+[\d.,]*\s*(?:k|m|b)\b/i',
-        '/\d+[\d.,]*\s*(?:ribu|rb|k|juta|jt|m|miliar|b)\s*rupiah\b/i',
-
-        // Dollar patterns
-        '/\$\s*\d+[\d.,]*\s*(?:k|m|b)\b/i',
-        '/usd\s*\d+[\d.,]*\s*(?:k|m|b)\b/i',
-
-        // Crypto currency patterns
-        '/(?:btc|eth|usdt)\s*\d+(?:\.\d+)?/i',
-        '/\d+(?:\.\d+)?\s*(?:bitcoin|ethereum|tether)/i'
-    ];
-
-    foreach ($currencyPatterns as $pattern) {
-        if (preg_match_all($pattern, $html, $matches)) {
-            $analysis['currency_indicators'] = array_merge(
-                $analysis['currency_indicators'],
-                array_unique($matches[0])
-            );
-
-            // Tingkatkan risk score berdasarkan tipe mata uang
-            if (preg_match('/(btc|eth|usdt|bitcoin|ethereum|tether)/i', $pattern)) {
-                $analysis['risk_score'] += 2; // Skor lebih tinggi untuk crypto
-            } else {
-                $analysis['risk_score'] += 1;
-            }
-        }
-    }
-
-    // Tambahkan analisis crypto yang lebih mendalam
-    $cryptoAnalysis = $this->verifyCryptoTransactions($html);
-    $analysis['crypto_analysis'] = $cryptoAnalysis;
-    $analysis['risk_score'] += $cryptoAnalysis['risk_score'];
-
-    return $analysis;
-}
 
     private function analyzePromotionalContent($html)
     {
@@ -816,7 +827,11 @@ private function analyzeContent($html, Crawler $crawler)
                 $queryString = parse_url($redirect, PHP_URL_QUERY);
                 if ($queryString) {
                     $suspiciousParams = [
-                        'ref', 'affiliate', 'partner', 'bonus', 'promo'
+                        'ref',
+                        'affiliate',
+                        'partner',
+                        'bonus',
+                        'promo'
                     ];
                     parse_str($queryString, $params);
                     foreach ($suspiciousParams as $param) {
@@ -838,88 +853,88 @@ private function analyzeContent($html, Crawler $crawler)
     }
 
     private function findHiddenElements(Crawler $crawler)
-{
-    $hiddenElements = [
-        'css_hidden' => [],
-        'js_hidden' => [],
-        'obscured_elements' => [],
-        'risk_score' => 0
-    ];
+    {
+        $hiddenElements = [
+            'css_hidden' => [],
+            'js_hidden' => [],
+            'obscured_elements' => [],
+            'risk_score' => 0
+        ];
 
-    // Deteksi elemen tersembunyi via CSS
-    $cssSelectors = [
-        '[style*="display:none"]',
-        '[style*="visibility:hidden"]',
-        '[style*="opacity:0"]',
-        '.hidden',
-        '.invisible',
-        '[hidden]'
-    ];
+        // Deteksi elemen tersembunyi via CSS
+        $cssSelectors = [
+            '[style*="display:none"]',
+            '[style*="visibility:hidden"]',
+            '[style*="opacity:0"]',
+            '.hidden',
+            '.invisible',
+            '[hidden]'
+        ];
 
-    foreach ($cssSelectors as $selector) {
-        try {
-            $crawler->filter($selector)->each(function ($node) use (&$hiddenElements) {
-                $hiddenElements['css_hidden'][] = [
-                    'element' => $node->nodeName(),
-                    'class' => $node->attr('class'),
-                    'id' => $node->attr('id'),
-                    'content' => $node->text()
-                ];
-                $hiddenElements['risk_score'] += 2;
-            });
-        } catch (\Exception $e) {
-            continue; // Skip invalid selectors
+        foreach ($cssSelectors as $selector) {
+            try {
+                $crawler->filter($selector)->each(function ($node) use (&$hiddenElements) {
+                    $hiddenElements['css_hidden'][] = [
+                        'element' => $node->nodeName(),
+                        'class' => $node->attr('class'),
+                        'id' => $node->attr('id'),
+                        'content' => $node->text()
+                    ];
+                    $hiddenElements['risk_score'] += 2;
+                });
+            } catch (\Exception $e) {
+                continue; // Skip invalid selectors
+            }
         }
-    }
 
-    // Deteksi elemen tersembunyi via JavaScript
-    $jsSelectors = [
-        '[onclick*="show"]',
-        '[onmouseover*="reveal"]',
-        '[data-hidden="true"]',
-        '.js-toggle'
-    ];
+        // Deteksi elemen tersembunyi via JavaScript
+        $jsSelectors = [
+            '[onclick*="show"]',
+            '[onmouseover*="reveal"]',
+            '[data-hidden="true"]',
+            '.js-toggle'
+        ];
 
-    foreach ($jsSelectors as $selector) {
-        try {
-            $crawler->filter($selector)->each(function ($node) use (&$hiddenElements, $selector) {
-                $hiddenElements['js_hidden'][] = [
-                    'element' => $node->nodeName(),
-                    'trigger' => $selector,
-                    'content' => $node->text()
-                ];
-                $hiddenElements['risk_score'] += 2;
-            });
-        } catch (\Exception $e) {
-            continue;
+        foreach ($jsSelectors as $selector) {
+            try {
+                $crawler->filter($selector)->each(function ($node) use (&$hiddenElements, $selector) {
+                    $hiddenElements['js_hidden'][] = [
+                        'element' => $node->nodeName(),
+                        'trigger' => $selector,
+                        'content' => $node->text()
+                    ];
+                    $hiddenElements['risk_score'] += 2;
+                });
+            } catch (\Exception $e) {
+                continue;
+            }
         }
-    }
 
-    // Deteksi elemen yang dikaburkan
-    $obscuredSelectors = [
-        '[style*="text-indent"]',
-        '[style*="position:absolute"]',
-        '[style*="clip:"]',
-        '[style*="transform:translate"]'
-    ];
+        // Deteksi elemen yang dikaburkan
+        $obscuredSelectors = [
+            '[style*="text-indent"]',
+            '[style*="position:absolute"]',
+            '[style*="clip:"]',
+            '[style*="transform:translate"]'
+        ];
 
-    foreach ($obscuredSelectors as $selector) {
-        try {
-            $crawler->filter($selector)->each(function ($node) use (&$hiddenElements) {
-                $hiddenElements['obscured_elements'][] = [
-                    'element' => $node->nodeName(),
-                    'style' => $node->attr('style'),
-                    'content' => $node->text()
-                ];
-                $hiddenElements['risk_score'] += 1;
-            });
-        } catch (\Exception $e) {
-            continue;
+        foreach ($obscuredSelectors as $selector) {
+            try {
+                $crawler->filter($selector)->each(function ($node) use (&$hiddenElements) {
+                    $hiddenElements['obscured_elements'][] = [
+                        'element' => $node->nodeName(),
+                        'style' => $node->attr('style'),
+                        'content' => $node->text()
+                    ];
+                    $hiddenElements['risk_score'] += 1;
+                });
+            } catch (\Exception $e) {
+                continue;
+            }
         }
-    }
 
-    return $hiddenElements;
-}
+        return $hiddenElements;
+    }
 
     private function analyzeBehavioralPatterns(Crawler $crawler, $html)
     {
@@ -932,1019 +947,1029 @@ private function analyzeContent($html, Crawler $crawler)
     }
 
     private function calculateContentScore($contentAnalysis)
-{
-    $score = 0;
-    $scoringRules = [
-        'gambling_keywords' => [
-            'base_score' => 2,
-            'max_impact' => 20,
-            'multiplier' => 1.5,
-            'weight_factors' => [
-                'direct_terms' => 2.0,
-                'indirect_terms' => 1.2,
-                'context_terms' => 1.0
+    {
+        $score = 0;
+        $scoringRules = [
+            'gambling_keywords' => [
+                'base_score' => 2,
+                'max_impact' => 20,
+                'multiplier' => 1.5,
+                'weight_factors' => [
+                    'direct_terms' => 2.0,
+                    'indirect_terms' => 1.2,
+                    'context_terms' => 1.0
+                ]
+            ],
+            'suspicious_domains' => [
+                'base_score' => 3,
+                'max_impact' => 30,
+                'multiplier' => 2,
+                'weight_factors' => [
+                    'gambling_domains' => 2.0,
+                    'redirect_domains' => 1.5,
+                    'masked_domains' => 1.8
+                ]
+            ],
+            'financial_indicators' => [
+                'base_score' => 2.5,
+                'max_impact' => 25,
+                'multiplier' => 1.75,
+                'weight_factors' => [
+                    'crypto_transactions' => 2.0,
+                    'suspicious_amounts' => 1.5,
+                    'payment_methods' => 1.2
+                ]
+            ],
+            'betting_analysis' => [
+                'base_score' => 2.5,
+                'max_impact' => 25,
+                'multiplier' => 1.8,
+                'weight_factors' => [
+                    'time_patterns' => 2.0,
+                    'numeric_patterns' => 1.8,
+                    'context_analysis' => 1.5
+                ]
+            ],
+            'promo_analysis' => [
+                'base_score' => 2,
+                'max_impact' => 20,
+                'multiplier' => 1.25,
+                'weight_factors' => [
+                    'bonus_offers' => 1.5,
+                    'time_limited' => 1.2,
+                    'referral_programs' => 1.3
+                ]
+            ],
+            'text_sentiment' => [
+                'base_score' => 1.5,
+                'max_impact' => 15,
+                'multiplier' => 1,
+                'weight_factors' => [
+                    'urgency_indicators' => 1.3,
+                    'trust_signals' => 1.2,
+                    'risk_terms' => 1.1
+                ]
             ]
-        ],
-        'suspicious_domains' => [
-            'base_score' => 3,
-            'max_impact' => 30,
-            'multiplier' => 2,
-            'weight_factors' => [
-                'gambling_domains' => 2.0,
-                'redirect_domains' => 1.5,
-                'masked_domains' => 1.8
-            ]
-        ],
-        'financial_indicators' => [
-            'base_score' => 2.5,
-            'max_impact' => 25,
-            'multiplier' => 1.75,
-            'weight_factors' => [
-                'crypto_transactions' => 2.0,
-                'suspicious_amounts' => 1.5,
-                'payment_methods' => 1.2
-            ]
-        ],
-        'betting_analysis' => [
-            'base_score' => 2.5,
-            'max_impact' => 25,
-            'multiplier' => 1.8,
-            'weight_factors' => [
-                'time_patterns' => 2.0,
-                'numeric_patterns' => 1.8,
-                'context_analysis' => 1.5
-            ]
-        ],
-        'promo_analysis' => [
-            'base_score' => 2,
-            'max_impact' => 20,
-            'multiplier' => 1.25,
-            'weight_factors' => [
-                'bonus_offers' => 1.5,
-                'time_limited' => 1.2,
-                'referral_programs' => 1.3
-            ]
-        ],
-        'text_sentiment' => [
-            'base_score' => 1.5,
-            'max_impact' => 15,
-            'multiplier' => 1,
-            'weight_factors' => [
-                'urgency_indicators' => 1.3,
-                'trust_signals' => 1.2,
-                'risk_terms' => 1.1
-            ]
-        ]
-    ];
-
-    foreach ($scoringRules as $category => $rules) {
-        if (!empty($contentAnalysis[$category])) {
-            $categoryData = $contentAnalysis[$category];
-
-            // Hitung skor dasar
-            $categoryCount = $this->calculateCategoryCount($categoryData);
-
-            // Aplikasikan faktor pembobotan berdasarkan subcategories
-            $weightedScore = $this->applyWeightFactors($categoryData, $rules['weight_factors']);
-
-            // Gunakan fungsi logaritmik untuk menghindari skalabilitas linier
-            $logarithmicScore = $rules['base_score'] * log($categoryCount + $weightedScore + 1, 2);
-
-            // Terapkan multiplier dan batasan maksimum
-            $scaledScore = min(
-                $logarithmicScore * $rules['multiplier'],
-                $rules['max_impact']
-            );
-
-            $score += $scaledScore;
-        }
-    }
-
-    // Faktor penalti untuk kombinasi kategori berisiko tinggi
-    if ($this->hasHighRiskCombination($contentAnalysis)) {
-        $score *= 1.2; // Tingkatkan skor sebesar 20%
-    }
-
-    // Normalisasi skor akhir
-    return min(round($score, 2), 100);
-}
-
-private function calculateCategoryCount($categoryData)
-{
-    if (is_array($categoryData)) {
-        if (isset($categoryData['risk_score'])) {
-            return $categoryData['risk_score'];
-        }
-
-        $count = 0;
-        foreach ($categoryData as $item) {
-            if (is_array($item)) {
-                $count += count(array_filter($item));
-            } elseif ($item) {
-                $count++;
-            }
-        }
-        return $count;
-    }
-    return $categoryData ? 1 : 0;
-}
-private function applyWeightFactors($categoryData, $weightFactors)
-{
-    $weightedScore = 0;
-
-    foreach ($weightFactors as $factor => $weight) {
-        if (isset($categoryData[$factor])) {
-            $value = is_array($categoryData[$factor]) ?
-                count($categoryData[$factor]) :
-                (float)$categoryData[$factor];
-            $weightedScore += $value * $weight;
-        }
-    }
-
-    return $weightedScore;
-}
-
-private function hasHighRiskCombination($contentAnalysis)
-{
-    $highRiskFactors = 0;
-
-    // Check untuk kombinasi faktor berisiko tinggi
-    if (!empty($contentAnalysis['crypto_analysis']['detected_addresses'])) {
-        $highRiskFactors++;
-    }
-
-    if (!empty($contentAnalysis['gambling_keywords']['direct_gambling_terms'])) {
-        $highRiskFactors++;
-    }
-
-    if (!empty($contentAnalysis['betting_analysis']['matched_patterns'])) {
-        $highRiskFactors++;
-    }
-
-    if (!empty($contentAnalysis['suspicious_domains']['gambling_domains'])) {
-        $highRiskFactors++;
-    }
-
-    // Return true jika ada minimal 2 faktor berisiko tinggi
-    return $highRiskFactors >= 2;
-}
-
-private function analyzeBettingTerms($text)
-{
-    $analysis = [
-        'matched_patterns' => [],
-        'numeric_patterns' => [],
-        'time_patterns' => [],
-        'context_analysis' => [],
-        'risk_score' => 0
-    ];
-
-    // Input validation and sanitization
-    if (!is_string($text)) {
-        Log::warning('Invalid input type for analyzeBettingTerms', [
-            'expected' => 'string',
-            'received' => gettype($text)
-        ]);
-        return $analysis;
-    }
-
-    try {
-        // Sanitize input
-        $text = strip_tags($text);
-        $text = preg_replace('/\s+/', ' ', trim($text));
-
-        // Legitimate contexts that should be excluded
-        $legitimateContexts = [
-            'schedule' => '/(?:jadwal|schedule|agenda|acara)\s*(?:kegiatan|event|meeting)?/i',
-            'sports_news' => '/(?:hasil|skor|pertandingan|tournament|liga)\s*(?:sepakbola|bola|olahraga)/i',
-            'business' => '/(?:profit|loss|revenue|pendapatan|kerugian)\s*(?:perusahaan|bisnis|usaha)/i',
-            'education' => '/(?:nilai|grade|score|exam|ujian|test)\s*(?:siswa|mahasiswa|student)/i'
         ];
 
-        // Enhanced betting patterns with contextual awareness and validation
-        $bettingPatterns = [
-            'odds' => [
-                'pattern' => '/\b\d+(?:\.\d+)?\s*(?::|x|-)\s*\d+(?:\.\d+)?\b/',
-                'weight' => 3,
-                'validation' => function($match, $context) {
-                    // Check if odds are in betting context
-                    if (preg_match('/(?:odds|peluang|chance|probability|bet|taruhan|pasang)/i', $context)) {
-                        // Exclude mathematical/statistical contexts
-                        if (preg_match('/(?:ratio|perbandingan|scale|skala|matematika|statistik)\s*\d+/i', $context)) {
-                            return false;
-                        }
-                        return true;
-                    }
-                    return false;
+        foreach ($scoringRules as $category => $rules) {
+            if (!empty($contentAnalysis[$category])) {
+                $categoryData = $contentAnalysis[$category];
+
+                // Hitung skor dasar
+                $categoryCount = $this->calculateCategoryCount($categoryData);
+
+                // Aplikasikan faktor pembobotan berdasarkan subcategories
+                $weightedScore = $this->applyWeightFactors($categoryData, $rules['weight_factors']);
+
+                // Gunakan fungsi logaritmik untuk menghindari skalabilitas linier
+                $logarithmicScore = $rules['base_score'] * log($categoryCount + $weightedScore + 1, 2);
+
+                // Terapkan multiplier dan batasan maksimum
+                $scaledScore = min(
+                    $logarithmicScore * $rules['multiplier'],
+                    $rules['max_impact']
+                );
+
+                $score += $scaledScore;
+            }
+        }
+
+        // Faktor penalti untuk kombinasi kategori berisiko tinggi
+        if ($this->hasHighRiskCombination($contentAnalysis)) {
+            $score *= 1.2; // Tingkatkan skor sebesar 20%
+        }
+
+        // Normalisasi skor akhir
+        return min(round($score, 2), 100);
+    }
+
+    private function calculateCategoryCount($categoryData)
+    {
+        if (is_array($categoryData)) {
+            if (isset($categoryData['risk_score'])) {
+                return $categoryData['risk_score'];
+            }
+
+            $count = 0;
+            foreach ($categoryData as $item) {
+                if (is_array($item)) {
+                    $count += count(array_filter($item));
+                } elseif ($item) {
+                    $count++;
                 }
-            ],
-            'multipliers' => [
-                'pattern' => '/\b(?:x|×)\s*\d+(?:\.\d+)?\s*(?:bet|win|menang)\b/i',
-                'weight' => 4,
-                'validation' => function($match, $context) {
-                    // Enhanced validation for multipliers
-                    if (preg_match('/(?:bet|taruhan|pasang|gambling|judi)/i', $context)) {
-                        // Exclude educational/business contexts
-                        if (preg_match('/(?:multiplication|perkalian|factor|faktor|pembelajaran|business)\s*(?:matematika|study|belajar|analysis)/i', $context)) {
-                            return false;
+            }
+            return $count;
+        }
+        return $categoryData ? 1 : 0;
+    }
+    private function applyWeightFactors($categoryData, $weightFactors)
+    {
+        $weightedScore = 0;
+
+        foreach ($weightFactors as $factor => $weight) {
+            if (isset($categoryData[$factor])) {
+                $value = is_array($categoryData[$factor]) ?
+                    count($categoryData[$factor]) :
+                    (float)$categoryData[$factor];
+                $weightedScore += $value * $weight;
+            }
+        }
+
+        return $weightedScore;
+    }
+
+    private function hasHighRiskCombination($contentAnalysis)
+    {
+        $highRiskFactors = 0;
+
+        // Check untuk kombinasi faktor berisiko tinggi
+        if (!empty($contentAnalysis['crypto_analysis']['detected_addresses'])) {
+            $highRiskFactors++;
+        }
+
+        if (!empty($contentAnalysis['gambling_keywords']['direct_gambling_terms'])) {
+            $highRiskFactors++;
+        }
+
+        if (!empty($contentAnalysis['betting_analysis']['matched_patterns'])) {
+            $highRiskFactors++;
+        }
+
+        if (!empty($contentAnalysis['suspicious_domains']['gambling_domains'])) {
+            $highRiskFactors++;
+        }
+
+        // Return true jika ada minimal 2 faktor berisiko tinggi
+        return $highRiskFactors >= 2;
+    }
+
+    private function analyzeBettingTerms($text)
+    {
+        $analysis = [
+            'matched_patterns' => [],
+            'numeric_patterns' => [],
+            'time_patterns' => [],
+            'context_analysis' => [],
+            'risk_score' => 0
+        ];
+
+        // Input validation and sanitization
+        if (!is_string($text)) {
+            Log::warning('Invalid input type for analyzeBettingTerms', [
+                'expected' => 'string',
+                'received' => gettype($text)
+            ]);
+            return $analysis;
+        }
+
+        try {
+            // Sanitize input
+            $text = strip_tags($text);
+            $text = preg_replace('/\s+/', ' ', trim($text));
+
+            // Legitimate contexts that should be excluded
+            $legitimateContexts = [
+                'schedule' => '/(?:jadwal|schedule|agenda|acara)\s*(?:kegiatan|event|meeting)?/i',
+                'sports_news' => '/(?:hasil|skor|pertandingan|tournament|liga)\s*(?:sepakbola|bola|olahraga)/i',
+                'business' => '/(?:profit|loss|revenue|pendapatan|kerugian)\s*(?:perusahaan|bisnis|usaha)/i',
+                'education' => '/(?:nilai|grade|score|exam|ujian|test)\s*(?:siswa|mahasiswa|student)/i'
+            ];
+
+            // Enhanced betting patterns with contextual awareness and validation
+            $bettingPatterns = [
+                'odds' => [
+                    'pattern' => '/\b\d+(?:\.\d+)?\s*(?::|x|-)\s*\d+(?:\.\d+)?\b/',
+                    'weight' => 3,
+                    'validation' => function ($match, $context) {
+                        // Check if odds are in betting context
+                        if (preg_match('/(?:odds|peluang|chance|probability|bet|taruhan|pasang)/i', $context)) {
+                            // Exclude mathematical/statistical contexts
+                            if (preg_match('/(?:ratio|perbandingan|scale|skala|matematika|statistik)\s*\d+/i', $context)) {
+                                return false;
+                            }
+                            return true;
                         }
-                        return true;
-                    }
-                    return false;
-                }
-            ],
-            'time_sensitive' => [
-                'pattern' => '/\b(?:dalam|in|within)\s*\d+\s*(?:menit|minute|detik|second|jam|hour)\b/i',
-                'weight' => 2,
-                'validation' => function($match, $context) {
-                    // Enhanced time context validation
-                    if (preg_match('/(?:deposit|withdraw|bet|taruhan|menang|jackpot|bonus|hadiah)/i', $context)) {
-                        // Exclude legitimate time references
-                        if (preg_match('/(?:delivery|pengiriman|process|proses|jadwal|schedule|appointment)\s*(?:time|waktu)/i', $context)) {
-                            return false;
-                        }
-                        return true;
-                    }
-                    return false;
-                }
-            ],
-            'betting_keywords' => [
-                'pattern' => '/\b(?:bet|taruhan|judi|gambling|casino|slots?|poker|togel|sportbook)\b/i',
-                'weight' => 5,
-                'validation' => function($match, $context) {
-                    // Validate betting keywords in context
-                    if (preg_match('/(?:illegal|warning|bahaya|larangan|anti|against)\s*(?:gambling|judi|betting)/i', $context)) {
                         return false;
                     }
-                    return true;
+                ],
+                'multipliers' => [
+                    'pattern' => '/\b(?:x|×)\s*\d+(?:\.\d+)?\s*(?:bet|win|menang)\b/i',
+                    'weight' => 4,
+                    'validation' => function ($match, $context) {
+                        // Enhanced validation for multipliers
+                        if (preg_match('/(?:bet|taruhan|pasang|gambling|judi)/i', $context)) {
+                            // Exclude educational/business contexts
+                            if (preg_match('/(?:multiplication|perkalian|factor|faktor|pembelajaran|business)\s*(?:matematika|study|belajar|analysis)/i', $context)) {
+                                return false;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+                ],
+                'time_sensitive' => [
+                    'pattern' => '/\b(?:dalam|in|within)\s*\d+\s*(?:menit|minute|detik|second|jam|hour)\b/i',
+                    'weight' => 2,
+                    'validation' => function ($match, $context) {
+                        // Enhanced time context validation
+                        if (preg_match('/(?:deposit|withdraw|bet|taruhan|menang|jackpot|bonus|hadiah)/i', $context)) {
+                            // Exclude legitimate time references
+                            if (preg_match('/(?:delivery|pengiriman|process|proses|jadwal|schedule|appointment)\s*(?:time|waktu)/i', $context)) {
+                                return false;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+                ],
+                'betting_keywords' => [
+                    'pattern' => '/\b(?:bet|taruhan|judi|gambling|casino|slots?|poker|togel|sportbook)\b/i',
+                    'weight' => 5,
+                    'validation' => function ($match, $context) {
+                        // Validate betting keywords in context
+                        if (preg_match('/(?:illegal|warning|bahaya|larangan|anti|against)\s*(?:gambling|judi|betting)/i', $context)) {
+                            return false;
+                        }
+                        return true;
+                    }
+                ]
+            ];
+
+            // First check for legitimate contexts
+            foreach ($legitimateContexts as $type => $pattern) {
+                if (preg_match_all('/\b(?:[01]?[0-9]|2[0-3]):[0-5][0-9]\b/', $text, $matches)) {
+                    foreach ($matches[0] as $time) {
+                        $context = $this->extractContext($text, $time, 100);
+                        if (!$this->isLegitimateTimeFormat($time, $context)) {
+                            $analysis['betting_terms'][] = $time;
+                            $analysis['risk_score'] += 1;
+                        }
+                    }
                 }
+            }
+
+            // Analyze betting patterns with enhanced context
+            foreach ($bettingPatterns as $type => $config) {
+                if (preg_match_all($config['pattern'], $text, $matches, PREG_OFFSET_CAPTURE)) {
+                    foreach ($matches[0] as $match) {
+                        $matchText = $match[0];
+                        $position = $match[1];
+
+                        try {
+                            // Extract surrounding context with error handling
+                            $context = $this->extractExtendedContext($text, $position, 150);
+
+                            // Perform deep context analysis
+                            $contextAnalysis = $this->analyzePatternContext($context, $type);
+
+                            // Validate pattern using the provided validation function
+                            if ($config['validation']($matchText, $context)) {
+                                // Calculate confidence score based on context
+                                $confidenceScore = $this->calculateContextConfidence(
+                                    $contextAnalysis,
+                                    $config['weight']
+                                );
+
+                                if ($confidenceScore > 0.6) { // Threshold for considering a match
+                                    $analysis['matched_patterns'][] = [
+                                        'type' => $type,
+                                        'match' => $matchText,
+                                        'context' => $context,
+                                        'confidence' => $confidenceScore,
+                                        'analysis' => $contextAnalysis,
+                                        'timestamp' => time()
+                                    ];
+
+                                    $analysis['risk_score'] += $config['weight'] * $confidenceScore;
+                                }
+                            }
+                        } catch (\Exception $e) {
+                            Log::error('Error analyzing pattern match', [
+                                'type' => $type,
+                                'match' => $matchText,
+                                'error' => $e->getMessage()
+                            ]);
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            // Analyze time patterns with error handling
+            try {
+                $this->analyzeTimePatterns($text, $analysis);
+            } catch (\Exception $e) {
+                Log::error('Error in time pattern analysis: ' . $e->getMessage());
+            }
+
+            // Normalize risk score
+            $analysis['risk_score'] = max(0, min(100, $analysis['risk_score']));
+
+            return $analysis;
+        } catch (\Exception $e) {
+            Log::error('Error in betting terms analysis: ' . $e->getMessage(), [
+                'text_sample' => substr($text, 0, 100),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return $analysis;
+        }
+    }
+
+    // Tambahan method untuk memudahkan konfigurasi pola
+
+    private function analyzeTimePatterns($text, &$analysis)
+    {
+        // Validasi input
+        if (!is_string($text)) {
+            Log::warning('Invalid input type for analyzeTimePatterns', [
+                'expected' => 'string',
+                'received' => gettype($text)
+            ]);
+            return;
+        }
+
+        // Initialize time_patterns if not exists
+        if (!isset($analysis['time_patterns'])) {
+            $analysis['time_patterns'] = [];
+        }
+
+        $timePatterns = [
+            'specific_time' => [
+                'pattern' => '/\b(?:(?:1[0-2]|0?[1-9])(?::[0-5][0-9])?(?:\s*[AaPp][Mm])?)\b/',
+                'context_rules' => [
+                    'suspicious' => [
+                        '/(?:bet|taruhan|odds|game|main)\s*close/i',
+                        '/(?:result|hasil)\s*announcement/i',
+                        '/last\s*(?:chance|kesempatan)/i'
+                    ],
+                    'legitimate' => [
+                        '/(?:opening|closing)\s*hours/i',
+                        '/(?:meeting|appointment|jadwal)\s*time/i',
+                        '/(?:class|kelas|lesson|pelajaran)\s*schedule/i'
+                    ]
+                ]
+            ],
+            'countdown' => [
+                'pattern' => '/\b\d+\s*(?:menit|minute|detik|second|jam|hour)\s*(?:lagi|left|remaining)\b/i',
+                'context_rules' => [
+                    'suspicious' => [
+                        '/(?:bet|taruhan)\s*(?:close|tutup)/i',
+                        '/(?:promo|bonus|offer)\s*(?:end|berakhir)/i',
+                        '/last\s*(?:chance|kesempatan)/i'
+                    ],
+                    'legitimate' => [
+                        '/(?:delivery|shipping|pengiriman)\s*estimate/i',
+                        '/(?:countdown|timer)\s*to\s*(?:event|acara)/i',
+                        '/(?:session|sesi)\s*timeout/i'
+                    ]
+                ]
+            ],
+            'duration' => [
+                'pattern' => '/\b(?:selama|for|during)\s*\d+\s*(?:menit|minute|jam|hour|hari|day)\b/i',
+                'context_rules' => [
+                    'suspicious' => [
+                        '/(?:profit|win|menang)\s*guarantee/i',
+                        '/(?:deposit|withdraw)\s*process/i',
+                        '/instant\s*(?:payment|pembayaran)/i'
+                    ],
+                    'legitimate' => [
+                        '/(?:warranty|garansi)\s*period/i',
+                        '/(?:delivery|shipping|pengiriman)\s*time/i',
+                        '/(?:validity|masa\s*berlaku)/i'
+                    ]
+                ]
             ]
         ];
 
-        // First check for legitimate contexts
-        foreach ($legitimateContexts as $type => $pattern) {
-            if (preg_match_all('/\b(?:[01]?[0-9]|2[0-3]):[0-5][0-9]\b/', $text, $matches)) {
-                foreach ($matches[0] as $time) {
-                    $context = $this->extractContext($text, $time, 100);
-                    if (!$this->isLegitimateTimeFormat($time, $context)) {
-                        $analysis['betting_terms'][] = $time;
-                        $analysis['risk_score'] += 1;
-                    }
-                }
-            }
-        }
+        try {
+            foreach ($timePatterns as $type => $config) {
+                if (preg_match_all($config['pattern'], $text, $matches, PREG_OFFSET_CAPTURE)) {
+                    foreach ($matches[0] as $match) {
+                        $matchText = $match[0];
+                        $position = $match[1];
 
-        // Analyze betting patterns with enhanced context
-        foreach ($bettingPatterns as $type => $config) {
-            if (preg_match_all($config['pattern'], $text, $matches, PREG_OFFSET_CAPTURE)) {
-                foreach ($matches[0] as $match) {
-                    $matchText = $match[0];
-                    $position = $match[1];
-
-                    try {
-                        // Extract surrounding context with error handling
+                        // Extract context safely
                         $context = $this->extractExtendedContext($text, $position, 150);
 
-                        // Perform deep context analysis
-                        $contextAnalysis = $this->analyzePatternContext($context, $type);
+                        // Analyze context using rules
+                        $contextScore = $this->analyzeTimeContext(
+                            $context,
+                            $config['context_rules']
+                        );
 
-                        // Validate pattern using the provided validation function
-                        if ($config['validation']($matchText, $context)) {
-                            // Calculate confidence score based on context
-                            $confidenceScore = $this->calculateContextConfidence(
-                                $contextAnalysis,
-                                $config['weight']
-                            );
+                        if ($contextScore > 0) {
+                            $analysis['time_patterns'][] = [
+                                'type' => $type,
+                                'match' => $matchText,
+                                'context' => $context,
+                                'score' => $contextScore
+                            ];
 
-                            if ($confidenceScore > 0.6) { // Threshold for considering a match
-                                $analysis['matched_patterns'][] = [
-                                    'type' => $type,
-                                    'match' => $matchText,
-                                    'context' => $context,
-                                    'confidence' => $confidenceScore,
-                                    'analysis' => $contextAnalysis,
-                                    'timestamp' => time()
-                                ];
-
-                                $analysis['risk_score'] += $config['weight'] * $confidenceScore;
+                            // Update risk score
+                            if (!isset($analysis['risk_score'])) {
+                                $analysis['risk_score'] = 0;
                             }
+                            $analysis['risk_score'] += $contextScore;
                         }
-                    } catch (\Exception $e) {
-                        Log::error('Error analyzing pattern match', [
-                            'type' => $type,
-                            'match' => $matchText,
-                            'error' => $e->getMessage()
-                        ]);
-                        continue;
                     }
                 }
             }
-        }
-
-        // Analyze time patterns with error handling
-        try {
-            $this->analyzeTimePatterns($text, $analysis);
         } catch (\Exception $e) {
-            Log::error('Error in time pattern analysis: ' . $e->getMessage());
+            Log::error('Error in time pattern analysis: ' . $e->getMessage(), [
+                'text_sample' => substr($text, 0, 100),
+                'trace' => $e->getTraceAsString()
+            ]);
         }
 
-        // Normalize risk score
-        $analysis['risk_score'] = max(0, min(100, $analysis['risk_score']));
-
-        return $analysis;
-
-    } catch (\Exception $e) {
-        Log::error('Error in betting terms analysis: ' . $e->getMessage(), [
-            'text_sample' => substr($text, 0, 100),
-            'trace' => $e->getTraceAsString()
-        ]);
-        return $analysis;
-    }
-}
-
-// Tambahan method untuk memudahkan konfigurasi pola
-
-private function analyzeTimePatterns($text, &$analysis)
-{
-    // Validasi input
-    if (!is_string($text)) {
-        Log::warning('Invalid input type for analyzeTimePatterns', [
-            'expected' => 'string',
-            'received' => gettype($text)
-        ]);
-        return;
+        // Ensure we always return a valid structure even if errors occur
+        if (!isset($analysis['time_patterns'])) {
+            $analysis['time_patterns'] = [];
+        }
+        if (!isset($analysis['risk_score'])) {
+            $analysis['risk_score'] = 0;
+        }
     }
 
-    // Initialize time_patterns if not exists
-    if (!isset($analysis['time_patterns'])) {
-        $analysis['time_patterns'] = [];
+
+
+    private function analyzeTimeContext($context, $rules)
+    {
+        $score = 0;
+        $suspiciousMatches = 0;
+        $legitimateMatches = 0;
+
+        // Check suspicious patterns
+        foreach ($rules['suspicious'] as $pattern) {
+            if (preg_match($pattern, $context)) {
+                $suspiciousMatches++;
+                $score += 2;
+            }
+        }
+
+        // Check legitimate patterns
+        foreach ($rules['legitimate'] as $pattern) {
+            if (preg_match($pattern, $context)) {
+                $legitimateMatches++;
+                $score -= 2;
+            }
+        }
+
+        // Calculate final score considering both pattern types
+        if ($suspiciousMatches > $legitimateMatches) {
+            return $score;
+        }
+
+        return 0; // Return 0 if more legitimate matches or equal
     }
 
-    $timePatterns = [
-        'specific_time' => [
-            'pattern' => '/\b(?:(?:1[0-2]|0?[1-9])(?::[0-5][0-9])?(?:\s*[AaPp][Mm])?)\b/',
-            'context_rules' => [
-                'suspicious' => [
-                    '/(?:bet|taruhan|odds|game|main)\s*close/i',
-                    '/(?:result|hasil)\s*announcement/i',
-                    '/last\s*(?:chance|kesempatan)/i'
+    private function extractExtendedContext($text, $position, $radius)
+    {
+        try {
+            // Validasi input
+            if (!is_string($text) || !is_numeric($position) || !is_numeric($radius)) {
+                throw new \InvalidArgumentException('Invalid input parameters for extractExtendedContext');
+            }
+
+            // Ensure position and radius are within text bounds
+            $textLength = strlen($text);
+            $position = max(0, min($position, $textLength - 1));
+            $radius = max(0, $radius);
+
+            // Calculate boundaries
+            $start = max(0, $position - $radius);
+            $end = min($textLength, $position + $radius);
+
+            // Try to extend to complete sentences
+            while ($start > 0 && !in_array($text[$start - 1], ['.', '!', '?', "\n"])) {
+                $start--;
+            }
+            while ($end < $textLength && !in_array($text[$end], ['.', '!', '?', "\n"])) {
+                $end++;
+            }
+
+            return trim(substr($text, $start, $end - $start));
+        } catch (\Exception $e) {
+            Log::error('Error in extracting context: ' . $e->getMessage(), [
+                'position' => $position,
+                'radius' => $radius,
+                'text_length' => isset($text) ? strlen($text) : 0
+            ]);
+
+            // Return a safe default
+            return '';
+        }
+    }
+
+    //ex
+    private function analyzePatternContext($context, $patternType)
+    {
+        $analysis = [
+            'gambling_indicators' => 0,
+            'legitimate_indicators' => 0,
+            'context_keywords' => []
+        ];
+
+        // Pattern-specific context indicators
+        $contextIndicators = [
+            'odds' => [
+                'gambling' => [
+                    '/(?:bet|taruhan|pasaran|odds)/i',
+                    '/(?:win|menang|jackpot|hadiah)/i',
+                    '/(?:game|permainan|main)/i'
                 ],
                 'legitimate' => [
-                    '/(?:opening|closing)\s*hours/i',
-                    '/(?:meeting|appointment|jadwal)\s*time/i',
-                    '/(?:class|kelas|lesson|pelajaran)\s*schedule/i'
+                    '/(?:statistics|statistik|data|analysis)/i',
+                    '/(?:research|penelitian|study)/i',
+                    '/(?:comparison|perbandingan|ratio)/i'
                 ]
-            ]
-        ],
-        'countdown' => [
-            'pattern' => '/\b\d+\s*(?:menit|minute|detik|second|jam|hour)\s*(?:lagi|left|remaining)\b/i',
-            'context_rules' => [
-                'suspicious' => [
-                    '/(?:bet|taruhan)\s*(?:close|tutup)/i',
-                    '/(?:promo|bonus|offer)\s*(?:end|berakhir)/i',
-                    '/last\s*(?:chance|kesempatan)/i'
+            ],
+            'multipliers' => [
+                'gambling' => [
+                    '/(?:bet|taruhan|stake|modal)/i',
+                    '/(?:profit|keuntungan|return)/i',
+                    '/(?:bonus|promotion|promo)/i'
                 ],
                 'legitimate' => [
-                    '/(?:delivery|shipping|pengiriman)\s*estimate/i',
-                    '/(?:countdown|timer)\s*to\s*(?:event|acara)/i',
-                    '/(?:session|sesi)\s*timeout/i'
+                    '/(?:investment|investasi|return)/i',
+                    '/(?:growth|pertumbuhan|increase)/i',
+                    '/(?:factor|faktor|multiplier)/i'
                 ]
-            ]
-        ],
-        'duration' => [
-            'pattern' => '/\b(?:selama|for|during)\s*\d+\s*(?:menit|minute|jam|hour|hari|day)\b/i',
-            'context_rules' => [
-                'suspicious' => [
-                    '/(?:profit|win|menang)\s*guarantee/i',
-                    '/(?:deposit|withdraw)\s*process/i',
-                    '/instant\s*(?:payment|pembayaran)/i'
+            ],
+            'time_sensitive' => [
+                'gambling' => [
+                    '/(?:deposit|withdraw|payment)/i',
+                    '/(?:instant|cepat|fast)/i',
+                    '/(?:process|proses|transaction)/i'
                 ],
                 'legitimate' => [
-                    '/(?:warranty|garansi)\s*period/i',
-                    '/(?:delivery|shipping|pengiriman)\s*time/i',
-                    '/(?:validity|masa\s*berlaku)/i'
+                    '/(?:delivery|pengiriman|shipping)/i',
+                    '/(?:service|layanan|support)/i',
+                    '/(?:response|respons|reply)/i'
                 ]
             ]
-        ]
-    ];
+        ];
 
-    try {
-        foreach ($timePatterns as $type => $config) {
-            if (preg_match_all($config['pattern'], $text, $matches, PREG_OFFSET_CAPTURE)) {
-                foreach ($matches[0] as $match) {
-                    $matchText = $match[0];
-                    $position = $match[1];
+        if (isset($contextIndicators[$patternType])) {
+            // Check gambling indicators
+            foreach ($contextIndicators[$patternType]['gambling'] as $pattern) {
+                if (preg_match($pattern, $context, $matches)) {
+                    $analysis['gambling_indicators']++;
+                    $analysis['context_keywords'][] = $matches[0];
+                }
+            }
 
-                    // Extract context safely
-                    $context = $this->extractExtendedContext($text, $position, 150);
-
-                    // Analyze context using rules
-                    $contextScore = $this->analyzeTimeContext(
-                        $context,
-                        $config['context_rules']
-                    );
-
-                    if ($contextScore > 0) {
-                        $analysis['time_patterns'][] = [
-                            'type' => $type,
-                            'match' => $matchText,
-                            'context' => $context,
-                            'score' => $contextScore
-                        ];
-
-                        // Update risk score
-                        if (!isset($analysis['risk_score'])) {
-                            $analysis['risk_score'] = 0;
-                        }
-                        $analysis['risk_score'] += $contextScore;
-                    }
+            // Check legitimate indicators
+            foreach ($contextIndicators[$patternType]['legitimate'] as $pattern) {
+                if (preg_match($pattern, $context, $matches)) {
+                    $analysis['legitimate_indicators']++;
+                    $analysis['context_keywords'][] = $matches[0];
                 }
             }
         }
-    } catch (\Exception $e) {
-        Log::error('Error in time pattern analysis: ' . $e->getMessage(), [
-            'text_sample' => substr($text, 0, 100),
-            'trace' => $e->getTraceAsString()
-        ]);
+
+        return $analysis;
     }
 
-    // Ensure we always return a valid structure even if errors occur
-    if (!isset($analysis['time_patterns'])) {
-        $analysis['time_patterns'] = [];
-    }
-    if (!isset($analysis['risk_score'])) {
-        $analysis['risk_score'] = 0;
-    }
-}
+    private function calculateContextConfidence($contextAnalysis, $baseWeight)
+    {
+        // Base confidence calculation
+        $confidence = 0;
 
+        if (
+            $contextAnalysis['gambling_indicators'] > 0 ||
+            $contextAnalysis['legitimate_indicators'] > 0
+        ) {
 
+            $totalIndicators = $contextAnalysis['gambling_indicators'] +
+                $contextAnalysis['legitimate_indicators'];
 
-private function analyzeTimeContext($context, $rules)
-{
-    $score = 0;
-    $suspiciousMatches = 0;
-    $legitimateMatches = 0;
-
-    // Check suspicious patterns
-    foreach ($rules['suspicious'] as $pattern) {
-        if (preg_match($pattern, $context)) {
-            $suspiciousMatches++;
-            $score += 2;
-        }
-    }
-
-    // Check legitimate patterns
-    foreach ($rules['legitimate'] as $pattern) {
-        if (preg_match($pattern, $context)) {
-            $legitimateMatches++;
-            $score -= 2;
-        }
-    }
-
-    // Calculate final score considering both pattern types
-    if ($suspiciousMatches > $legitimateMatches) {
-        return $score;
-    }
-
-    return 0; // Return 0 if more legitimate matches or equal
-}
-
-private function extractExtendedContext($text, $position, $radius)
-{
-    try {
-        // Validasi input
-        if (!is_string($text) || !is_numeric($position) || !is_numeric($radius)) {
-            throw new \InvalidArgumentException('Invalid input parameters for extractExtendedContext');
+            $confidence = $contextAnalysis['gambling_indicators'] / $totalIndicators;
         }
 
-        // Ensure position and radius are within text bounds
-        $textLength = strlen($text);
-        $position = max(0, min($position, $textLength - 1));
-        $radius = max(0, $radius);
+        // Apply weight modifier
+        $weightedConfidence = $confidence * ($baseWeight / 5);
 
-        // Calculate boundaries
-        $start = max(0, $position - $radius);
-        $end = min($textLength, $position + $radius);
-
-        // Try to extend to complete sentences
-        while ($start > 0 && !in_array($text[$start - 1], ['.', '!', '?', "\n"])) {
-            $start--;
-        }
-        while ($end < $textLength && !in_array($text[$end], ['.', '!', '?', "\n"])) {
-            $end++;
-        }
-
-        return trim(substr($text, $start, $end - $start));
-    } catch (\Exception $e) {
-        Log::error('Error in extracting context: ' . $e->getMessage(), [
-            'position' => $position,
-            'radius' => $radius,
-            'text_length' => isset($text) ? strlen($text) : 0
-        ]);
-
-        // Return a safe default
-        return '';
-    }
-}
-
-
-private function analyzePatternContext($context, $patternType)
-{
-    $analysis = [
-        'gambling_indicators' => 0,
-        'legitimate_indicators' => 0,
-        'context_keywords' => []
-    ];
-
-    // Pattern-specific context indicators
-    $contextIndicators = [
-        'odds' => [
-            'gambling' => [
-                '/(?:bet|taruhan|pasaran|odds)/i',
-                '/(?:win|menang|jackpot|hadiah)/i',
-                '/(?:game|permainan|main)/i'
-            ],
-            'legitimate' => [
-                '/(?:statistics|statistik|data|analysis)/i',
-                '/(?:research|penelitian|study)/i',
-                '/(?:comparison|perbandingan|ratio)/i'
-            ]
-        ],
-        'multipliers' => [
-            'gambling' => [
-                '/(?:bet|taruhan|stake|modal)/i',
-                '/(?:profit|keuntungan|return)/i',
-                '/(?:bonus|promotion|promo)/i'
-            ],
-            'legitimate' => [
-                '/(?:investment|investasi|return)/i',
-                '/(?:growth|pertumbuhan|increase)/i',
-                '/(?:factor|faktor|multiplier)/i'
-            ]
-        ],
-        'time_sensitive' => [
-            'gambling' => [
-                '/(?:deposit|withdraw|payment)/i',
-                '/(?:instant|cepat|fast)/i',
-                '/(?:process|proses|transaction)/i'
-            ],
-            'legitimate' => [
-                '/(?:delivery|pengiriman|shipping)/i',
-                '/(?:service|layanan|support)/i',
-                '/(?:response|respons|reply)/i'
-            ]
-        ]
-    ];
-
-    if (isset($contextIndicators[$patternType])) {
-        // Check gambling indicators
-        foreach ($contextIndicators[$patternType]['gambling'] as $pattern) {
-            if (preg_match($pattern, $context, $matches)) {
-                $analysis['gambling_indicators']++;
-                $analysis['context_keywords'][] = $matches[0];
-            }
-        }
-
-        // Check legitimate indicators
-        foreach ($contextIndicators[$patternType]['legitimate'] as $pattern) {
-            if (preg_match($pattern, $context, $matches)) {
-                $analysis['legitimate_indicators']++;
-                $analysis['context_keywords'][] = $matches[0];
-            }
-        }
+        // Normalize to 0-1 range
+        return min(1, max(0, $weightedConfidence));
     }
 
-    return $analysis;
-}
+    private function extractContext($text, $term, $radius)
+    {
+        $pos = stripos($text, $term);
+        if ($pos === false) return '';
 
-private function calculateContextConfidence($contextAnalysis, $baseWeight)
-{
-    // Base confidence calculation
-    $confidence = 0;
+        $start = max(0, $pos - $radius);
+        $length = strlen($term) + (2 * $radius);
 
-    if ($contextAnalysis['gambling_indicators'] > 0 ||
-        $contextAnalysis['legitimate_indicators'] > 0) {
-
-        $totalIndicators = $contextAnalysis['gambling_indicators'] +
-                          $contextAnalysis['legitimate_indicators'];
-
-        $confidence = $contextAnalysis['gambling_indicators'] / $totalIndicators;
+        return substr($text, $start, $length);
     }
 
-    // Apply weight modifier
-    $weightedConfidence = $confidence * ($baseWeight / 5);
-
-    // Normalize to 0-1 range
-    return min(1, max(0, $weightedConfidence));
-}
-
-private function extractContext($text, $term, $radius) {
-    $pos = stripos($text, $term);
-    if ($pos === false) return '';
-
-    $start = max(0, $pos - $radius);
-    $length = strlen($term) + (2 * $radius);
-
-    return substr($text, $start, $length);
-}
-
-// Perbaikan pada fungsi analyzeBettingTerms untuk waktu
-private function isLegitimateTimeFormat($time, $context) {
-    // Cek format waktu standar
-    if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $time)) {
-        return false;
-    }
-
-    // Cek konteks legitimate
-    $legitimateContexts = [
-        '/(?:jadwal|schedule|agenda)\s*(?:kegiatan|acara|event)/i',
-        '/jam\s*(?:buka|operasional|kerja)/i',
-        '/opening\s*hours?/i',
-        '/\b(?:pukul|jam|waktu)\b/i'
-    ];
-
-    foreach ($legitimateContexts as $pattern) {
-        if (preg_match($pattern, $context)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-private function verifyCryptoTransactions($text) {
-    $analysis = [
-        'detected_addresses' => [],
-        'suspicious_patterns' => [],
-        'risk_score' => 0
-    ];
-
-    // Pola untuk berbagai jenis alamat cryptocurrency
-    $cryptoPatterns = [
-        'bitcoin' => [
-            'pattern' => '/\b(bc1|[13])[A-HJ-NP-Za-km-z1-9]{25,39}\b/',
-            'risk_weight' => 3
-        ],
-        'ethereum' => [
-            'pattern' => '/\b0x[a-fA-F0-9]{40}\b/',
-            'risk_weight' => 3
-        ],
-        'tron' => [
-            'pattern' => '/\bT[A-Za-z1-9]{33}\b/',
-            'risk_weight' => 2
-        ],
-        'ripple' => [
-            'pattern' => '/\br[0-9a-zA-Z]{24,34}\b/',
-            'risk_weight' => 2
-        ],
-        'litecoin' => [
-            'pattern' => '/\b[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}\b/',
-            'risk_weight' => 2
-        ]
-    ];
-
-    // Konteks yang mencurigakan
-    $suspiciousContexts = [
-        '/deposit|withdraw|transfer/i',
-        '/min(?:imum)?\s*\d+/i',
-        '/instant|fast|quick/i',
-        '/anonymous|private|secure/i'
-    ];
-
-    foreach ($cryptoPatterns as $crypto => $data) {
-        if (preg_match_all($data['pattern'], $text, $matches)) {
-            foreach ($matches[0] as $address) {
-                // Validasi format dan checksum
-                if ($this->validateCryptoAddress($address, $crypto)) {
-                    $context = $this->extractContext($text, $address, 50);
-                    $contextRisk = $this->analyzeCryptoContext($context, $suspiciousContexts);
-
-                    $analysis['detected_addresses'][] = [
-                        'address' => $address,
-                        'type' => $crypto,
-                        'context' => $context,
-                        'risk_level' => $contextRisk
-                    ];
-
-                    // Tingkatkan risk score berdasarkan konteks dan tipe crypto
-                    $analysis['risk_score'] += ($contextRisk * $data['risk_weight']);
-                }
-            }
-        }
-    }
-
-    return $analysis;
-}
-
-private function validateCryptoAddress($address, $type) {
-    switch ($type) {
-        case 'bitcoin':
-            return $this->validateBitcoinAddress($address);
-        case 'ethereum':
-            return $this->validateEthereumAddress($address);
-        default:
-            return true; // Fallback untuk tipe lain
-    }
-}
-
-private function validateBitcoinAddress($address) {
-    // Implementasi validasi checksum Bitcoin
-    if (!preg_match('/^(bc1|[13])[A-HJ-NP-Za-km-z1-9]{25,39}$/', $address)) {
-        return false;
-    }
-
-    // Base58 karakter yang valid untuk Bitcoin
-    $base58Chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-
-    // Verifikasi karakter valid
-    for ($i = 0; $i < strlen($address); $i++) {
-        if (strpos($base58Chars, $address[$i]) === false &&
-            !in_array($address[$i], ['1', '3', 'b', 'c'])) {
+    // Perbaikan pada fungsi analyzeBettingTerms untuk waktu
+    private function isLegitimateTimeFormat($time, $context)
+    {
+        // Cek format waktu standar
+        if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $time)) {
             return false;
         }
-    }
 
-    return true;
-}
+        // Cek konteks legitimate
+        $legitimateContexts = [
+            '/(?:jadwal|schedule|agenda)\s*(?:kegiatan|acara|event)/i',
+            '/jam\s*(?:buka|operasional|kerja)/i',
+            '/opening\s*hours?/i',
+            '/\b(?:pukul|jam|waktu)\b/i'
+        ];
 
-private function validateEthereumAddress($address) {
-    // Validasi format dasar Ethereum address
-    if (!preg_match('/^0x[a-fA-F0-9]{40}$/', $address)) {
+        foreach ($legitimateContexts as $pattern) {
+            if (preg_match($pattern, $context)) {
+                return true;
+            }
+        }
+
         return false;
     }
+    private function verifyCryptoTransactions($text)
+    {
+        $analysis = [
+            'detected_addresses' => [],
+            'suspicious_patterns' => [],
+            'risk_score' => 0
+        ];
 
-    // Verifikasi checksum untuk address dengan mixed-case
-    if (preg_match('/[A-F]/', $address)) {
-        // Implementasi checksum Ethereum
-        $address = substr($address, 2); // Hapus '0x'
-        $addressHash = hash('keccak256', strtolower($address));
+        // Pola untuk berbagai jenis alamat cryptocurrency
+        $cryptoPatterns = [
+            'bitcoin' => [
+                'pattern' => '/\b(bc1|[13])[A-HJ-NP-Za-km-z1-9]{25,39}\b/',
+                'risk_weight' => 3
+            ],
+            'ethereum' => [
+                'pattern' => '/\b0x[a-fA-F0-9]{40}\b/',
+                'risk_weight' => 3
+            ],
+            'tron' => [
+                'pattern' => '/\bT[A-Za-z1-9]{33}\b/',
+                'risk_weight' => 2
+            ],
+            'ripple' => [
+                'pattern' => '/\br[0-9a-zA-Z]{24,34}\b/',
+                'risk_weight' => 2
+            ],
+            'litecoin' => [
+                'pattern' => '/\b[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}\b/',
+                'risk_weight' => 2
+            ]
+        ];
 
-        for ($i = 0; $i < 40; $i++) {
-            if (ctype_alpha($address[$i])) {
-                $hashChar = hexdec($addressHash[$i]);
-                if ((hexdec($addressHash[$i]) > 7 &&
-                     $address[$i] !== strtoupper($address[$i])) ||
-                    (hexdec($addressHash[$i]) <= 7 &&
-                     $address[$i] !== strtolower($address[$i]))) {
-                    return false;
+        // Konteks yang mencurigakan
+        $suspiciousContexts = [
+            '/deposit|withdraw|transfer/i',
+            '/min(?:imum)?\s*\d+/i',
+            '/instant|fast|quick/i',
+            '/anonymous|private|secure/i'
+        ];
+
+        foreach ($cryptoPatterns as $crypto => $data) {
+            if (preg_match_all($data['pattern'], $text, $matches)) {
+                foreach ($matches[0] as $address) {
+                    // Validasi format dan checksum
+                    if ($this->validateCryptoAddress($address, $crypto)) {
+                        $context = $this->extractContext($text, $address, 50);
+                        $contextRisk = $this->analyzeCryptoContext($context, $suspiciousContexts);
+
+                        $analysis['detected_addresses'][] = [
+                            'address' => $address,
+                            'type' => $crypto,
+                            'context' => $context,
+                            'risk_level' => $contextRisk
+                        ];
+
+                        // Tingkatkan risk score berdasarkan konteks dan tipe crypto
+                        $analysis['risk_score'] += ($contextRisk * $data['risk_weight']);
+                    }
                 }
             }
         }
+
+        return $analysis;
     }
 
-    return true;
-}
-
-private function analyzeCryptoContext($context, $suspiciousPatterns) {
-    $riskLevel = 0;
-
-    foreach ($suspiciousPatterns as $pattern) {
-        if (preg_match($pattern, $context)) {
-            $riskLevel++;
+    private function validateCryptoAddress($address, $type)
+    {
+        switch ($type) {
+            case 'bitcoin':
+                return $this->validateBitcoinAddress($address);
+            case 'ethereum':
+                return $this->validateEthereumAddress($address);
+            default:
+                return true; // Fallback untuk tipe lain
         }
     }
 
-    // Normalisasi skor (0-5)
-    return min(5, $riskLevel);
-}
+    private function validateBitcoinAddress($address)
+    {
+        // Implementasi validasi checksum Bitcoin
+        if (!preg_match('/^(bc1|[13])[A-HJ-NP-Za-km-z1-9]{25,39}$/', $address)) {
+            return false;
+        }
 
-private function calculateTechnicalScore($technicalAnalysis)
-{
-    $score = 0;
-    $scoringRules = [
-        'hidden_elements' => [
-            'base_score' => 3,
-            'max_impact' => 30,
-            'risk_multiplier' => 2
-        ],
-        'domain_analysis' => [
-            'base_score' => 2,
-            'max_impact' => 20,
-            'risk_multiplier' => 1.5
-        ],
-        'link_structure' => [
-            'base_score' => 2.5,
-            'max_impact' => 25,
-            'risk_multiplier' => 1.75
-        ],
-        'js_analysis' => [
-            'base_score' => 2,
-            'max_impact' => 20,
-            'risk_multiplier' => 1.25
-        ]
-    ];
+        // Base58 karakter yang valid untuk Bitcoin
+        $base58Chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
-    foreach ($scoringRules as $category => $rules) {
-        $categoryRiskScore = 0;
-
-        if (isset($technicalAnalysis[$category])) {
-            $analysis = $technicalAnalysis[$category];
-
-            // Perhitungan skor berdasarkan kompleksitas dan risiko
-            switch ($category) {
-                case 'hidden_elements':
-                    $categoryRiskScore = isset($analysis['risk_score']) ?
-                        $analysis['risk_score'] :
-                        (count($analysis['css_hidden'] ?? []) +
-                         count($analysis['js_hidden'] ?? []) +
-                         count($analysis['obscured_elements'] ?? []));
-                    break;
-
-                case 'domain_analysis':
-                    $categoryRiskScore = $analysis['risk_score'] ?? 0;
-                    break;
-
-                case 'link_structure':
-                    $categoryRiskScore = count($analysis['suspicious_links'] ?? []) * 2;
-                    break;
-
-                case 'js_analysis':
-                    $categoryRiskScore = $analysis['obfuscation_detected'] ? 10 :
-                        (count($analysis['suspicious_patterns'] ?? []) * 2);
-                    break;
+        // Verifikasi karakter valid
+        for ($i = 0; $i < strlen($address); $i++) {
+            if (
+                strpos($base58Chars, $address[$i]) === false &&
+                !in_array($address[$i], ['1', '3', 'b', 'c'])
+            ) {
+                return false;
             }
-
-            // Terapkan pembobotan logaritmik dengan batasan
-            $logarithmicScore = $rules['base_score'] * log($categoryRiskScore + 1, 2);
-            $scaledScore = min(
-                $logarithmicScore * $rules['risk_multiplier'],
-                $rules['max_impact']
-            );
-
-            $score += $scaledScore;
         }
+
+        return true;
     }
 
-    return min(round($score, 2), 100);
-}
+    private function validateEthereumAddress($address)
+    {
+        // Validasi format dasar Ethereum address
+        if (!preg_match('/^0x[a-fA-F0-9]{40}$/', $address)) {
+            return false;
+        }
 
-private function calculateBehavioralScore($behavioralAnalysis)
-{
-    $score = 0;
-    $scoringRules = [
-        'payment_patterns' => [
-            'base_score' => 2.5,
-            'max_impact' => 25,
-            'risk_multiplier' => 1.75
-        ],
-        'user_interaction' => [
-            'base_score' => 2,
-            'max_impact' => 20,
-            'risk_multiplier' => 1.5
-        ],
-        'registration_flow' => [
-            'base_score' => 2,
-            'max_impact' => 20,
-            'risk_multiplier' => 1.25
-        ],
-        'time_sensitive' => [
-            'base_score' => 1.5,
-            'max_impact' => 15,
-            'risk_multiplier' => 1
-        ]
-    ];
+        // Verifikasi checksum untuk address dengan mixed-case
+        if (preg_match('/[A-F]/', $address)) {
+            // Implementasi checksum Ethereum
+            $address = substr($address, 2); // Hapus '0x'
+            $addressHash = hash('keccak256', strtolower($address));
 
-    foreach ($scoringRules as $category => $rules) {
-        $categoryRiskScore = 0;
+            for ($i = 0; $i < 40; $i++) {
+                if (ctype_alpha($address[$i])) {
+                    $hashChar = hexdec($addressHash[$i]);
+                    if ((hexdec($addressHash[$i]) > 7 &&
+                            $address[$i] !== strtoupper($address[$i])) ||
+                        (hexdec($addressHash[$i]) <= 7 &&
+                            $address[$i] !== strtolower($address[$i]))
+                    ) {
+                        return false;
+                    }
+                }
+            }
+        }
 
-        if (isset($behavioralAnalysis[$category])) {
-            $analysis = $behavioralAnalysis[$category];
+        return true;
+    }
 
-            // Perhitungan skor berdasarkan kompleksitas dan risiko
-            switch ($category) {
-                case 'payment_patterns':
-                    $categoryRiskScore = array_sum(
-                        array_map('count', $analysis)
-                    );
-                    break;
+    private function analyzeCryptoContext($context, $suspiciousPatterns)
+    {
+        $riskLevel = 0;
 
-                case 'user_interaction':
-                    $categoryRiskScore = match($analysis['risk_level'] ?? 'low') {
-                        'high' => 10,
-                        'medium' => 5,
-                        default => 1
-                    } + count($analysis['suspicious_elements'] ?? []);
-                    break;
+        foreach ($suspiciousPatterns as $pattern) {
+            if (preg_match($pattern, $context)) {
+                $riskLevel++;
+            }
+        }
 
-                case 'registration_flow':
-                    $categoryRiskScore = count($analysis['suspicious_elements'] ?? []) * 2 +
-                        ($analysis['has_registration'] ?? false ? 5 : 0);
-                    break;
+        // Normalisasi skor (0-5)
+        return min(5, $riskLevel);
+    }
 
-                case 'time_sensitive':
-                    // Modifikasi untuk struktur data baru
-                    if (isset($analysis['total_risk_score'])) {
-                        $categoryRiskScore = $analysis['total_risk_score'];
+    private function calculateTechnicalScore($technicalAnalysis)
+    {
+        $score = 0;
+        $scoringRules = [
+            'hidden_elements' => [
+                'base_score' => 3,
+                'max_impact' => 30,
+                'risk_multiplier' => 2
+            ],
+            'domain_analysis' => [
+                'base_score' => 2,
+                'max_impact' => 20,
+                'risk_multiplier' => 1.5
+            ],
+            'link_structure' => [
+                'base_score' => 2.5,
+                'max_impact' => 25,
+                'risk_multiplier' => 1.75
+            ],
+            'js_analysis' => [
+                'base_score' => 2,
+                'max_impact' => 20,
+                'risk_multiplier' => 1.25
+            ]
+        ];
 
-                        // Tambahan bobot untuk kategori waktu yang berisiko
-                        if (!empty($analysis['risk_categories'])) {
-                            foreach ($analysis['risk_categories'] as $timeCategory) {
-                                $categoryRiskScore += count($timeCategory['suspicious_items'] ?? []);
-                            }
-                        }
-                    } else {
-                        // Fallback untuk struktur data lama
+        foreach ($scoringRules as $category => $rules) {
+            $categoryRiskScore = 0;
+
+            if (isset($technicalAnalysis[$category])) {
+                $analysis = $technicalAnalysis[$category];
+
+                // Perhitungan skor berdasarkan kompleksitas dan risiko
+                switch ($category) {
+                    case 'hidden_elements':
+                        $categoryRiskScore = isset($analysis['risk_score']) ?
+                            $analysis['risk_score'] : (count($analysis['css_hidden'] ?? []) +
+                                count($analysis['js_hidden'] ?? []) +
+                                count($analysis['obscured_elements'] ?? []));
+                        break;
+
+                    case 'domain_analysis':
+                        $categoryRiskScore = $analysis['risk_score'] ?? 0;
+                        break;
+
+                    case 'link_structure':
+                        $categoryRiskScore = count($analysis['suspicious_links'] ?? []) * 2;
+                        break;
+
+                    case 'js_analysis':
+                        $categoryRiskScore = $analysis['obfuscation_detected'] ? 10 : (count($analysis['suspicious_patterns'] ?? []) * 2);
+                        break;
+                }
+
+                // Terapkan pembobotan logaritmik dengan batasan
+                $logarithmicScore = $rules['base_score'] * log($categoryRiskScore + 1, 2);
+                $scaledScore = min(
+                    $logarithmicScore * $rules['risk_multiplier'],
+                    $rules['max_impact']
+                );
+
+                $score += $scaledScore;
+            }
+        }
+
+        return min(round($score, 2), 100);
+    }
+
+    private function calculateBehavioralScore($behavioralAnalysis)
+    {
+        $score = 0;
+        $scoringRules = [
+            'payment_patterns' => [
+                'base_score' => 2.5,
+                'max_impact' => 25,
+                'risk_multiplier' => 1.75
+            ],
+            'user_interaction' => [
+                'base_score' => 2,
+                'max_impact' => 20,
+                'risk_multiplier' => 1.5
+            ],
+            'registration_flow' => [
+                'base_score' => 2,
+                'max_impact' => 20,
+                'risk_multiplier' => 1.25
+            ],
+            'time_sensitive' => [
+                'base_score' => 1.5,
+                'max_impact' => 15,
+                'risk_multiplier' => 1
+            ]
+        ];
+
+        foreach ($scoringRules as $category => $rules) {
+            $categoryRiskScore = 0;
+
+            if (isset($behavioralAnalysis[$category])) {
+                $analysis = $behavioralAnalysis[$category];
+
+                // Perhitungan skor berdasarkan kompleksitas dan risiko
+                switch ($category) {
+                    case 'payment_patterns':
                         $categoryRiskScore = array_sum(
                             array_map('count', $analysis)
-                        ) * 2;
-                    }
-                    break;
+                        );
+                        break;
+
+                    case 'user_interaction':
+                        $categoryRiskScore = match ($analysis['risk_level'] ?? 'low') {
+                            'high' => 10,
+                            'medium' => 5,
+                            default => 1
+                        } + count($analysis['suspicious_elements'] ?? []);
+                        break;
+
+                    case 'registration_flow':
+                        $categoryRiskScore = count($analysis['suspicious_elements'] ?? []) * 2 +
+                            ($analysis['has_registration'] ?? false ? 5 : 0);
+                        break;
+
+                    case 'time_sensitive':
+                        // Modifikasi untuk struktur data baru
+                        if (isset($analysis['total_risk_score'])) {
+                            $categoryRiskScore = $analysis['total_risk_score'];
+
+                            // Tambahan bobot untuk kategori waktu yang berisiko
+                            if (!empty($analysis['risk_categories'])) {
+                                foreach ($analysis['risk_categories'] as $timeCategory) {
+                                    $categoryRiskScore += count($timeCategory['suspicious_items'] ?? []);
+                                }
+                            }
+                        } else {
+                            // Fallback untuk struktur data lama
+                            $categoryRiskScore = array_sum(
+                                array_map('count', $analysis)
+                            ) * 2;
+                        }
+                        break;
+                }
+
+                // Terapkan pembobotan logaritmik dengan batasan
+                $logarithmicScore = $rules['base_score'] * log($categoryRiskScore + 1, 2);
+                $scaledScore = min(
+                    $logarithmicScore * $rules['risk_multiplier'],
+                    $rules['max_impact']
+                );
+
+                $score += $scaledScore;
             }
-
-            // Terapkan pembobotan logaritmik dengan batasan
-            $logarithmicScore = $rules['base_score'] * log($categoryRiskScore + 1, 2);
-            $scaledScore = min(
-                $logarithmicScore * $rules['risk_multiplier'],
-                $rules['max_impact']
-            );
-
-            $score += $scaledScore;
         }
+
+        return min(round($score, 2), 100);
     }
 
-    return min(round($score, 2), 100);
-}
 
 
+    private function calculateFinalRisk($scoreSystem)
+    {
+        $weights = [
+            'content_score' => 0.4,
+            'technical_score' => 0.35,
+            'behavioral_score' => 0.25
+        ];
 
-private function calculateFinalRisk($scoreSystem)
-{
-    $weights = [
-        'content_score' => 0.4,
-        'technical_score' => 0.35,
-        'behavioral_score' => 0.25
-    ];
+        $totalScore = 0;
+        $totalWeight = 0;
+        $confidenceFactors = [];
 
-    $totalScore = 0;
-    $totalWeight = 0;
-    $confidenceFactors = [];
+        foreach ($weights as $metric => $weight) {
+            if (isset($scoreSystem[$metric]) && $scoreSystem[$metric] > 0) {
+                // Normalisasi skor
+                $normalizedScore = min(100, $scoreSystem[$metric]);
 
-    foreach ($weights as $metric => $weight) {
-        if (isset($scoreSystem[$metric]) && $scoreSystem[$metric] > 0) {
-            // Normalisasi skor
-            $normalizedScore = min(100, $scoreSystem[$metric]);
+                // Kalkulasi weighted score
+                $weightedScore = $normalizedScore * $weight;
+                $totalScore += $weightedScore;
+                $totalWeight += $weight;
 
-            // Kalkulasi weighted score
-            $weightedScore = $normalizedScore * $weight;
-            $totalScore += $weightedScore;
-            $totalWeight += $weight;
-
-            // Hitung faktor kepercayaan
-            $confidenceFactors[$metric] = $this->calculateConfidenceFactor(
-                $scoreSystem[$metric],
-                $metric
-            );
+                // Hitung faktor kepercayaan
+                $confidenceFactors[$metric] = $this->calculateConfidenceFactor(
+                    $scoreSystem[$metric],
+                    $metric
+                );
+            }
         }
+
+        // Normalisasi total skor
+        $finalScore = $totalWeight > 0 ? ($totalScore / $totalWeight) : 0;
+
+        // Kalkulasi confidence level
+        $confidenceLevel = array_sum($confidenceFactors) / count($confidenceFactors);
+
+        // Threshold yang lebih realistis
+        return [
+            'is_gambling' => $finalScore >= 60, // Meningkatkan threshold
+            'risk_level' => $this->determineRiskLevel($finalScore),
+            'confidence' => round($confidenceLevel, 2)
+        ];
     }
 
-    // Normalisasi total skor
-    $finalScore = $totalWeight > 0 ? ($totalScore / $totalWeight) : 0;
+    private function calculateConfidenceFactor($score, $metricType)
+    {
+        $baseConfidence = min(100, $score) / 100;
 
-    // Kalkulasi confidence level
-    $confidenceLevel = array_sum($confidenceFactors) / count($confidenceFactors);
+        // Faktor koreksi berdasarkan tipe metrik
+        $correctionFactors = [
+            'content_score' => 1.2,
+            'technical_score' => 1.0,
+            'behavioral_score' => 0.8
+        ];
 
-    // Threshold yang lebih realistis
-    return [
-        'is_gambling' => $finalScore >= 60, // Meningkatkan threshold
-        'risk_level' => $this->determineRiskLevel($finalScore),
-        'confidence' => round($confidenceLevel, 2)
-    ];
-}
-
-private function calculateConfidenceFactor($score, $metricType) {
-    $baseConfidence = min(100, $score) / 100;
-
-    // Faktor koreksi berdasarkan tipe metrik
-    $correctionFactors = [
-        'content_score' => 1.2,
-        'technical_score' => 1.0,
-        'behavioral_score' => 0.8
-    ];
-
-    return $baseConfidence * ($correctionFactors[$metricType] ?? 1.0);
-}
+        return $baseConfidence * ($correctionFactors[$metricType] ?? 1.0);
+    }
 
 
     private function determineRiskLevel($totalScore)
-{
-    // Perbaikan: Definisi level risiko yang lebih granular
-    $riskLevels = [
-        ['threshold' => 90, 'level' => 'Sangat Tinggi (Kritis)', 'confidence' => 'Sangat Yakin'],
-        ['threshold' => 75, 'level' => 'Tinggi', 'confidence' => 'Yakin'],
-        ['threshold' => 60, 'level' => 'Sedang-Tinggi', 'confidence' => 'Cukup Yakin'],
-        ['threshold' => 45, 'level' => 'Sedang', 'confidence' => 'Netral'],
-        ['threshold' => 30, 'level' => 'Rendah-Sedang', 'confidence' => 'Kurang Yakin'],
-        ['threshold' => 15, 'level' => 'Rendah', 'confidence' => 'Tidak Yakin'],
-        ['threshold' => 0, 'level' => 'Sangat Rendah', 'confidence' => 'Tidak Ada Indikasi']
-    ];
+    {
+        // Perbaikan: Definisi level risiko yang lebih granular
+        $riskLevels = [
+            ['threshold' => 90, 'level' => 'Sangat Tinggi (Kritis)', 'confidence' => 'Sangat Yakin'],
+            ['threshold' => 75, 'level' => 'Tinggi', 'confidence' => 'Yakin'],
+            ['threshold' => 60, 'level' => 'Sedang-Tinggi', 'confidence' => 'Cukup Yakin'],
+            ['threshold' => 45, 'level' => 'Sedang', 'confidence' => 'Netral'],
+            ['threshold' => 30, 'level' => 'Rendah-Sedang', 'confidence' => 'Kurang Yakin'],
+            ['threshold' => 15, 'level' => 'Rendah', 'confidence' => 'Tidak Yakin'],
+            ['threshold' => 0, 'level' => 'Sangat Rendah', 'confidence' => 'Tidak Ada Indikasi']
+        ];
 
-    foreach ($riskLevels as $riskLevel) {
-        if ($totalScore >= $riskLevel['threshold']) {
-            return $riskLevel['level'];
+        foreach ($riskLevels as $riskLevel) {
+            if ($totalScore >= $riskLevel['threshold']) {
+                return $riskLevel['level'];
+            }
         }
-    }
 
-    return 'Sangat Rendah';
-}
+        return 'Sangat Rendah';
+    }
 
     private function analyzeMetaInformation(Crawler $crawler)
     {
@@ -1962,7 +1987,7 @@ private function calculateConfidenceFactor($score, $metricType) {
 
         // Analyze title
         $title = $crawler->filter('title')->count() > 0 ?
-                 $crawler->filter('title')->text() : '';
+            $crawler->filter('title')->text() : '';
         $metaAnalysis['title_analysis'] = $this->analyzeMetaContent($title);
 
         return $metaAnalysis;
@@ -2256,349 +2281,349 @@ private function calculateConfidenceFactor($score, $metricType) {
     }
 
     private function analyzeTimeSensitiveElements($html)
-{
-    return [
-        'countdown_timers' => $this->detectAdvancedCountdownTimers($html),
-        'limited_offers' => $this->detectContextualLimitedOffers($html),
-        'real_time_stats' => $this->detectContextualRealTimeStats($html),
-        'risk_assessment' => $this->assessTimeSensitiveRisk($html)
-    ];
-}
-private function detectAdvancedCountdownTimers($html)
-{
-    $timerAnalysis = [
-        'detected_timers' => [],
-        'potential_gambling_indicators' => [],
-        'risk_score' => 0
-    ];
+    {
+        return [
+            'countdown_timers' => $this->detectAdvancedCountdownTimers($html),
+            'limited_offers' => $this->detectContextualLimitedOffers($html),
+            'real_time_stats' => $this->detectContextualRealTimeStats($html),
+            'risk_assessment' => $this->assessTimeSensitiveRisk($html)
+        ];
+    }
+    private function detectAdvancedCountdownTimers($html)
+    {
+        $timerAnalysis = [
+            'detected_timers' => [],
+            'potential_gambling_indicators' => [],
+            'risk_score' => 0
+        ];
 
-    // Pola waktu yang lebih kompleks
-    $timerPatterns = [
-        'standard_timer' => '/\d+:\d+:\d+/', // HH:MM:SS
-        'countdown' => '/(?:countdown|timer)\s*(?:to|for)?\s*(\d+\s*(?:minute|hour|day|week|month))/i',
-        'time_remaining' => '/(\d+(?:\.\d+)?)\s*(?:minute|hour|day|left|remaining)/i',
-        'event_timer' => '/(\d+\s*(?:minute|hour|day))\s*(?:until|before)\s*(?:event|promo|offer)/i'
-    ];
+        // Pola waktu yang lebih kompleks
+        $timerPatterns = [
+            'standard_timer' => '/\d+:\d+:\d+/', // HH:MM:SS
+            'countdown' => '/(?:countdown|timer)\s*(?:to|for)?\s*(\d+\s*(?:minute|hour|day|week|month))/i',
+            'time_remaining' => '/(\d+(?:\.\d+)?)\s*(?:minute|hour|day|left|remaining)/i',
+            'event_timer' => '/(\d+\s*(?:minute|hour|day))\s*(?:until|before)\s*(?:event|promo|offer)/i'
+        ];
 
-    foreach ($timerPatterns as $type => $pattern) {
-        if (preg_match_all($pattern, $html, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $match) {
-                $fullMatch = $match[0];
-                $context = $this->extractContext($html, $fullMatch, 100);
+        foreach ($timerPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches, PREG_SET_ORDER)) {
+                foreach ($matches as $match) {
+                    $fullMatch = $match[0];
+                    $context = $this->extractContext($html, $fullMatch, 100);
 
-                // Analisis konteks untuk menentukan risiko
-                $contextRisk = $this->assessTimerContext($context);
+                    // Analisis konteks untuk menentukan risiko
+                    $contextRisk = $this->assessTimerContext($context);
 
-                $timerAnalysis['detected_timers'][] = [
-                    'type' => $type,
-                    'match' => $fullMatch,
-                    'context' => $context,
-                    'risk_details' => $contextRisk
-                ];
+                    $timerAnalysis['detected_timers'][] = [
+                        'type' => $type,
+                        'match' => $fullMatch,
+                        'context' => $context,
+                        'risk_details' => $contextRisk
+                    ];
 
-                // Akumulasi skor risiko
-                $timerAnalysis['risk_score'] += $contextRisk['risk_score'];
+                    // Akumulasi skor risiko
+                    $timerAnalysis['risk_score'] += $contextRisk['risk_score'];
 
-                // Tambahkan indikator perjudian yang mencurigakan
-                if ($contextRisk['is_suspicious']) {
-                    $timerAnalysis['potential_gambling_indicators'][] = $fullMatch;
+                    // Tambahkan indikator perjudian yang mencurigakan
+                    if ($contextRisk['is_suspicious']) {
+                        $timerAnalysis['potential_gambling_indicators'][] = $fullMatch;
+                    }
                 }
             }
         }
+
+        return $timerAnalysis;
     }
 
-    return $timerAnalysis;
-}
 
+    private function assessTimerContext($context)
+    {
+        $riskAssessment = [
+            'is_suspicious' => false,
+            'risk_score' => 0,
+            'matched_patterns' => []
+        ];
 
-private function assessTimerContext($context)
-{
-    $riskAssessment = [
-        'is_suspicious' => false,
-        'risk_score' => 0,
-        'matched_patterns' => []
-    ];
+        // Pola konteks yang mencurigakan
+        $suspiciousContextPatterns = [
+            'gambling_indicators' => [
+                '/bonus|winnings?|jackpot/i',
+                '/(?:bet|betting|gambling)\s*(?:offer|promo)/i',
+                '/limited\s*time\s*(?:offer|promo)/i'
+            ],
+            'urgent_language' => [
+                '/hurry|quick|fast/i',
+                '/don\'t\s*miss|last\s*chance/i',
+                '/expires?(\s+in)?/i'
+            ],
+            'financial_context' => [
+                '/deposit|withdraw/i',
+                '/min(?:imal)?(?:\s*deposit)?/i',
+                '/cashback|bonus/i'
+            ]
+        ];
 
-    // Pola konteks yang mencurigakan
-    $suspiciousContextPatterns = [
-        'gambling_indicators' => [
-            '/bonus|winnings?|jackpot/i',
-            '/(?:bet|betting|gambling)\s*(?:offer|promo)/i',
-            '/limited\s*time\s*(?:offer|promo)/i'
-        ],
-        'urgent_language' => [
-            '/hurry|quick|fast/i',
-            '/don\'t\s*miss|last\s*chance/i',
-            '/expires?(\s+in)?/i'
-        ],
-        'financial_context' => [
-            '/deposit|withdraw/i',
-            '/min(?:imal)?(?:\s*deposit)?/i',
-            '/cashback|bonus/i'
-        ]
-    ];
+        // Cek setiap kategori pola
+        foreach ($suspiciousContextPatterns as $category => $patterns) {
+            foreach ($patterns as $pattern) {
+                if (preg_match($pattern, $context)) {
+                    $riskAssessment['is_suspicious'] = true;
+                    $riskAssessment['matched_patterns'][] = [
+                        'category' => $category,
+                        'pattern' => $pattern
+                    ];
 
-    // Cek setiap kategori pola
-    foreach ($suspiciousContextPatterns as $category => $patterns) {
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $context)) {
-                $riskAssessment['is_suspicious'] = true;
-                $riskAssessment['matched_patterns'][] = [
-                    'category' => $category,
-                    'pattern' => $pattern
-                ];
-
-                // Penyesuaian skor risiko berdasarkan kategori
-                $riskScores = [
-                    'gambling_indicators' => 3,
-                    'urgent_language' => 2,
-                    'financial_context' => 2
-                ];
-                $riskAssessment['risk_score'] += $riskScores[$category];
-            }
-        }
-    }
-
-    // Normalisasi skor risiko
-    $riskAssessment['risk_score'] = min($riskAssessment['risk_score'], 10);
-
-    return $riskAssessment;
-}
-
-private function detectContextualLimitedOffers($html)
-{
-    $offersAnalysis = [
-        'detected_offers' => [],
-        'potential_gambling_offers' => [],
-        'risk_score' => 0
-    ];
-
-    $offerPatterns = [
-        'limited_time' => '/limited\s*time\s*offer/i',
-        'quantity_limited' => '/only\s*(\d+)\s*(?:left|remaining)/i',
-        'time_bound' => '/(?:valid|offer)\s*(?:until|for)\s*(\d+\s*(?:hour|day|week))/i',
-        'exclusive_promo' => '/exclusive\s*(?:offer|promo)/i'
-    ];
-
-    foreach ($offerPatterns as $type => $pattern) {
-        if (preg_match_all($pattern, $html, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $match) {
-                $fullMatch = $match[0];
-                $context = $this->extractContext($html, $fullMatch, 100);
-
-                // Analisis konteks untuk menentukan risiko
-                $contextRisk = $this->assessOfferContext($context);
-
-                $offersAnalysis['detected_offers'][] = [
-                    'type' => $type,
-                    'match' => $fullMatch,
-                    'context' => $context,
-                    'risk_details' => $contextRisk
-                ];
-
-                // Akumulasi skor risiko
-                $offersAnalysis['risk_score'] += $contextRisk['risk_score'];
-
-                // Tambahkan penawaran yang mencurigakan
-                if ($contextRisk['is_suspicious']) {
-                    $offersAnalysis['potential_gambling_offers'][] = $fullMatch;
+                    // Penyesuaian skor risiko berdasarkan kategori
+                    $riskScores = [
+                        'gambling_indicators' => 3,
+                        'urgent_language' => 2,
+                        'financial_context' => 2
+                    ];
+                    $riskAssessment['risk_score'] += $riskScores[$category];
                 }
             }
         }
+
+        // Normalisasi skor risiko
+        $riskAssessment['risk_score'] = min($riskAssessment['risk_score'], 10);
+
+        return $riskAssessment;
     }
 
-    return $offersAnalysis;
-}
-private function assessOfferContext($context)
-{
-    $riskAssessment = [
-        'is_suspicious' => false,
-        'risk_score' => 0,
-        'matched_patterns' => []
-    ];
+    private function detectContextualLimitedOffers($html)
+    {
+        $offersAnalysis = [
+            'detected_offers' => [],
+            'potential_gambling_offers' => [],
+            'risk_score' => 0
+        ];
 
-    // Pola konteks untuk penilaian risiko penawaran
-    $suspiciousContextPatterns = [
-        'financial_indicators' => [
-            '/deposit|withdraw/i',
-            '/bonus\s*\d+%/i',
-            '/cashback/i'
-        ],
-        'gambling_keywords' => [
-            '/bet|betting/i',
-            '/win(?:nings?)?/i',
-            '/jackpot/i',
-            '/slot|casino/i'
-        ],
-        'urgency_language' => [
-            '/hurry|quick/i',
-            '/last\s*chance/i',
-            '/limited\s*time/i'
-        ]
-    ];
+        $offerPatterns = [
+            'limited_time' => '/limited\s*time\s*offer/i',
+            'quantity_limited' => '/only\s*(\d+)\s*(?:left|remaining)/i',
+            'time_bound' => '/(?:valid|offer)\s*(?:until|for)\s*(\d+\s*(?:hour|day|week))/i',
+            'exclusive_promo' => '/exclusive\s*(?:offer|promo)/i'
+        ];
 
-    // Cek setiap kategori pola
-    foreach ($suspiciousContextPatterns as $category => $patterns) {
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $context)) {
-                $riskAssessment['is_suspicious'] = true;
-                $riskAssessment['matched_patterns'][] = [
-                    'category' => $category,
-                    'pattern' => $pattern
-                ];
+        foreach ($offerPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches, PREG_SET_ORDER)) {
+                foreach ($matches as $match) {
+                    $fullMatch = $match[0];
+                    $context = $this->extractContext($html, $fullMatch, 100);
 
-                // Penyesuaian skor risiko berdasarkan kategori
-                $riskScores = [
-                    'financial_indicators' => 3,
-                    'gambling_keywords' => 4,
-                    'urgency_language' => 2
-                ];
-                $riskAssessment['risk_score'] += $riskScores[$category];
-            }
-        }
-    }
+                    // Analisis konteks untuk menentukan risiko
+                    $contextRisk = $this->assessOfferContext($context);
 
-    // Normalisasi skor risiko
-    $riskAssessment['risk_score'] = min($riskAssessment['risk_score'], 10);
+                    $offersAnalysis['detected_offers'][] = [
+                        'type' => $type,
+                        'match' => $fullMatch,
+                        'context' => $context,
+                        'risk_details' => $contextRisk
+                    ];
 
-    return $riskAssessment;
-}
-private function detectContextualRealTimeStats($html)
-{
-    $statsAnalysis = [
-        'detected_stats' => [],
-        'potential_gambling_stats' => [],
-        'risk_score' => 0
-    ];
+                    // Akumulasi skor risiko
+                    $offersAnalysis['risk_score'] += $contextRisk['risk_score'];
 
-    $statsPatterns = [
-        'player_count' => '/(\d+)\s*(?:online|active)\s*players?/i',
-        'current_winners' => '/current\s*winners?/i',
-        'recent_transactions' => '/recent\s*(?:transaction|win)s?/i',
-        'live_stats' => '/live\s*(?:stats?|data)/i'
-    ];
-
-    foreach ($statsPatterns as $type => $pattern) {
-        if (preg_match_all($pattern, $html, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $match) {
-                $fullMatch = $match[0];
-                $context = $this->extractContext($html, $fullMatch, 100);
-
-                // Analisis konteks untuk menentukan risiko
-                $contextRisk = $this->assessStatsContext($context);
-
-                $statsAnalysis['detected_stats'][] = [
-                    'type' => $type,
-                    'match' => $fullMatch,
-                    'context' => $context,
-                    'risk_details' => $contextRisk
-                ];
-
-                // Akumulasi skor risiko
-                $statsAnalysis['risk_score'] += $contextRisk['risk_score'];
-
-                // Tambahkan statistik yang mencurigakan
-                if ($contextRisk['is_suspicious']) {
-                    $statsAnalysis['potential_gambling_stats'][] = $fullMatch;
+                    // Tambahkan penawaran yang mencurigakan
+                    if ($contextRisk['is_suspicious']) {
+                        $offersAnalysis['potential_gambling_offers'][] = $fullMatch;
+                    }
                 }
             }
         }
+
+        return $offersAnalysis;
     }
+    private function assessOfferContext($context)
+    {
+        $riskAssessment = [
+            'is_suspicious' => false,
+            'risk_score' => 0,
+            'matched_patterns' => []
+        ];
 
-    return $statsAnalysis;
-}
+        // Pola konteks untuk penilaian risiko penawaran
+        $suspiciousContextPatterns = [
+            'financial_indicators' => [
+                '/deposit|withdraw/i',
+                '/bonus\s*\d+%/i',
+                '/cashback/i'
+            ],
+            'gambling_keywords' => [
+                '/bet|betting/i',
+                '/win(?:nings?)?/i',
+                '/jackpot/i',
+                '/slot|casino/i'
+            ],
+            'urgency_language' => [
+                '/hurry|quick/i',
+                '/last\s*chance/i',
+                '/limited\s*time/i'
+            ]
+        ];
 
-private function assessStatsContext($context)
-{
-    $riskAssessment = [
-        'is_suspicious' => false,
-        'risk_score' => 0,
-        'matched_patterns' => []
-    ];
+        // Cek setiap kategori pola
+        foreach ($suspiciousContextPatterns as $category => $patterns) {
+            foreach ($patterns as $pattern) {
+                if (preg_match($pattern, $context)) {
+                    $riskAssessment['is_suspicious'] = true;
+                    $riskAssessment['matched_patterns'][] = [
+                        'category' => $category,
+                        'pattern' => $pattern
+                    ];
 
-    // Pola konteks untuk penilaian risiko statistik
-    $suspiciousContextPatterns = [
-        'gambling_indicators' => [
-            '/bet|betting/i',
-            '/win(?:nings?)?/i',
-            '/jackpot/i',
-            '/slot|casino/i'
-        ],
-        'financial_context' => [
-            '/deposit|withdraw/i',
-            '/min(?:imal)?(?:\s*deposit)?/i',
-            '/cashback|bonus/i'
-        ],
-        'real_time_language' => [
-            '/live|instant/i',
-            '/current|now/i',
-            '/real[-\s]?time/i'
-        ]
-    ];
-
-    // Cek setiap kategori pola
-    foreach ($suspiciousContextPatterns as $category => $patterns) {
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $context)) {
-                $riskAssessment['is_suspicious'] = true;
-                $riskAssessment['matched_patterns'][] = [
-                    'category' => $category,
-                    'pattern' => $pattern
-                ];
-
-                // Penyesuaian skor risiko berdasarkan kategori
-                $riskScores = [
-                    'gambling_indicators' => 4,
-                    'financial_context' => 3,
-                    'real_time_language' => 2
-                ];
-                $riskAssessment['risk_score'] += $riskScores[$category];
+                    // Penyesuaian skor risiko berdasarkan kategori
+                    $riskScores = [
+                        'financial_indicators' => 3,
+                        'gambling_keywords' => 4,
+                        'urgency_language' => 2
+                    ];
+                    $riskAssessment['risk_score'] += $riskScores[$category];
+                }
             }
         }
+
+        // Normalisasi skor risiko
+        $riskAssessment['risk_score'] = min($riskAssessment['risk_score'], 10);
+
+        return $riskAssessment;
     }
+    private function detectContextualRealTimeStats($html)
+    {
+        $statsAnalysis = [
+            'detected_stats' => [],
+            'potential_gambling_stats' => [],
+            'risk_score' => 0
+        ];
 
-    // Normalisasi skor risiko
-    $riskAssessment['risk_score'] = min($riskAssessment['risk_score'], 10);
+        $statsPatterns = [
+            'player_count' => '/(\d+)\s*(?:online|active)\s*players?/i',
+            'current_winners' => '/current\s*winners?/i',
+            'recent_transactions' => '/recent\s*(?:transaction|win)s?/i',
+            'live_stats' => '/live\s*(?:stats?|data)/i'
+        ];
 
-    return $riskAssessment;
-}
+        foreach ($statsPatterns as $type => $pattern) {
+            if (preg_match_all($pattern, $html, $matches, PREG_SET_ORDER)) {
+                foreach ($matches as $match) {
+                    $fullMatch = $match[0];
+                    $context = $this->extractContext($html, $fullMatch, 100);
 
-private function assessTimeSensitiveRisk($html)
-{
-    $overallRiskAssessment = [
-        'total_risk_score' => 0,
-        'risk_categories' => []
-    ];
+                    // Analisis konteks untuk menentukan risiko
+                    $contextRisk = $this->assessStatsContext($context);
 
-    // Analisis komponen waktu yang sensitif
-    $components = [
-        'countdown_timers' => $this->detectAdvancedCountdownTimers($html),
-        'limited_offers' => $this->detectContextualLimitedOffers($html),
-        'real_time_stats' => $this->detectContextualRealTimeStats($html)
-    ];
+                    $statsAnalysis['detected_stats'][] = [
+                        'type' => $type,
+                        'match' => $fullMatch,
+                        'context' => $context,
+                        'risk_details' => $contextRisk
+                    ];
 
-    foreach ($components as $component => $analysis) {
-        if ($analysis['risk_score'] > 0) {
-            $overallRiskAssessment['risk_categories'][$component] = [
-                'risk_score' => $analysis['risk_score'],
-                'suspicious_items' => $analysis['potential_gambling_indicators'] ??
-                                      $analysis['potential_gambling_offers'] ??
-                                      $analysis['potential_gambling_stats'] ?? []
-            ];
+                    // Akumulasi skor risiko
+                    $statsAnalysis['risk_score'] += $contextRisk['risk_score'];
+
+                    // Tambahkan statistik yang mencurigakan
+                    if ($contextRisk['is_suspicious']) {
+                        $statsAnalysis['potential_gambling_stats'][] = $fullMatch;
+                    }
+                }
+            }
         }
+
+        return $statsAnalysis;
     }
 
-    // Hitung total skor risiko
-    $overallRiskAssessment['total_risk_score'] = array_reduce(
-        $overallRiskAssessment['risk_categories'],
-        function($carry, $item) {
-            return $carry + $item['risk_score'];
-        },
-        0
-    );
+    private function assessStatsContext($context)
+    {
+        $riskAssessment = [
+            'is_suspicious' => false,
+            'risk_score' => 0,
+            'matched_patterns' => []
+        ];
 
-    return $overallRiskAssessment;
-}
+        // Pola konteks untuk penilaian risiko statistik
+        $suspiciousContextPatterns = [
+            'gambling_indicators' => [
+                '/bet|betting/i',
+                '/win(?:nings?)?/i',
+                '/jackpot/i',
+                '/slot|casino/i'
+            ],
+            'financial_context' => [
+                '/deposit|withdraw/i',
+                '/min(?:imal)?(?:\s*deposit)?/i',
+                '/cashback|bonus/i'
+            ],
+            'real_time_language' => [
+                '/live|instant/i',
+                '/current|now/i',
+                '/real[-\s]?time/i'
+            ]
+        ];
+
+        // Cek setiap kategori pola
+        foreach ($suspiciousContextPatterns as $category => $patterns) {
+            foreach ($patterns as $pattern) {
+                if (preg_match($pattern, $context)) {
+                    $riskAssessment['is_suspicious'] = true;
+                    $riskAssessment['matched_patterns'][] = [
+                        'category' => $category,
+                        'pattern' => $pattern
+                    ];
+
+                    // Penyesuaian skor risiko berdasarkan kategori
+                    $riskScores = [
+                        'gambling_indicators' => 4,
+                        'financial_context' => 3,
+                        'real_time_language' => 2
+                    ];
+                    $riskAssessment['risk_score'] += $riskScores[$category];
+                }
+            }
+        }
+
+        // Normalisasi skor risiko
+        $riskAssessment['risk_score'] = min($riskAssessment['risk_score'], 10);
+
+        return $riskAssessment;
+    }
+
+    private function assessTimeSensitiveRisk($html)
+    {
+        $overallRiskAssessment = [
+            'total_risk_score' => 0,
+            'risk_categories' => []
+        ];
+
+        // Analisis komponen waktu yang sensitif
+        $components = [
+            'countdown_timers' => $this->detectAdvancedCountdownTimers($html),
+            'limited_offers' => $this->detectContextualLimitedOffers($html),
+            'real_time_stats' => $this->detectContextualRealTimeStats($html)
+        ];
+
+        foreach ($components as $component => $analysis) {
+            if ($analysis['risk_score'] > 0) {
+                $overallRiskAssessment['risk_categories'][$component] = [
+                    'risk_score' => $analysis['risk_score'],
+                    'suspicious_items' => $analysis['potential_gambling_indicators'] ??
+                        $analysis['potential_gambling_offers'] ??
+                        $analysis['potential_gambling_stats'] ?? []
+                ];
+            }
+        }
+
+        // Hitung total skor risiko
+        $overallRiskAssessment['total_risk_score'] = array_reduce(
+            $overallRiskAssessment['risk_categories'],
+            function ($carry, $item) {
+                return $carry + $item['risk_score'];
+            },
+            0
+        );
+
+        return $overallRiskAssessment;
+    }
     private function isDomainNewOrExpiring($domain)
     {
         // Implement domain age check logic here
