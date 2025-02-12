@@ -505,7 +505,8 @@
                 opacity: 0,
                 duration: 0.3,
                 onComplete: () => {
-                    window.history.back();
+                    // Navigasi ke halaman hasil pemindaian setelah animasi selesai
+                    window.location.href = "{{ route('scanner.result') }}";
                 }
             });
         }
