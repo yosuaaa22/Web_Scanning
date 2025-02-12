@@ -15,6 +15,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
+        .is-transitioning {
+            pointer-events: none;
+            user-select: none;
+        }
         .wrap-content {
             word-wrap: break-word;
             word-break: break-word;
@@ -219,16 +223,14 @@
     </div>
 
     <div class="container mx-auto p-4 text-center">
-    <button onclick="goBack()"
+        <button onclick="goBack()"
             class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 animate-pulse-slow">
-    Back to Previous Page
-    </button>
-</div>
+            Back to Previous Page
+        </button>
+    </div>
 
 
     <script>
-
-        
         function generatePDF() {
             getBase64Image("/images/logo.png", function(logoBase64) {
                 const {
@@ -500,17 +502,56 @@
             }
         });
 
-        function goBack() {
+        function goBack({
+            duration = 0.3,
+            ease = "power2.inOut",
+            fallbackUrl = '/'
+        } = {}) {
+            // Langsung trigger back navigation
+            window.history.back();
+
+            // Validate if GSAP is available
+            if (typeof gsap === 'undefined') {
+                return;
+            }
+
+            // Save current scroll position
+            const scrollPosition = window.scrollY;
+
+            // Set initial opacity
+            gsap.set(document.body, {
+                opacity: 0
+            });
+
+            // Fade in content
             gsap.to(document.body, {
-                opacity: 0,
-                duration: 0.3,
+                opacity: 1,
+                duration: duration,
+                ease: ease,
                 onComplete: () => {
-                    window.history.back();
+                    try {
+                        // Store scroll position
+                        sessionStorage.setItem('lastScrollPosition', scrollPosition);
+                    } catch (e) {
+                        console.warn('Unable to save scroll position:', e);
+                    }
                 }
             });
         }
 
-        
+        // Add event listener for page load/navigation
+        window.addEventListener('pageshow', function(event) {
+            // Check if the page is being shown from back/forward cache
+            if (event.persisted) {
+                // Force page refresh if needed
+                window.location.reload();
+            } else {
+                // Restore opacity if needed
+                gsap.set(document.body, {
+                    opacity: 1
+                });
+            }
+        });
     </script>
 </body>
 
