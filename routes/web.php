@@ -29,6 +29,8 @@ Route::middleware(['auth', 'security.enhanced'])->group(function () {
         Route::get('/history', [HistoryController::class, 'index'])->name('scanner.history');
         Route::get('/history/download', [HistoryController::class, 'downloadPDF'])->name('scanner.history.download');
         // routes/web.php
+        Route::get('/backdoor-details', [SecurityScannerController::class, 'showBackdoorDetails'])->name('backdoor.details');
+Route::get('/gambling-details', [SecurityScannerController::class, 'showGamblingDetails'])->name('gambling.details');
 Route::get('/scanner/result', function() {
     return redirect()->route('scanner.index')->with('error', 'Tidak ada hasil scan yang tersedia');
 })->name('scanner.result');

@@ -8,12 +8,7 @@ use App\Services\GamblingDetectionService;
 use App\Services\AIRecommendationService;
 use App\Services\EnhancedDetectionService;
 use App\Models\ScanResult;
-use App\Models\ScanHistory;
-use App\Events\ScanCompleted;
-use App\Notifications\TelegramAlert;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\CriticalVulnerabilityAlert;
 
 class SecurityScannerController extends Controller
 {
@@ -89,7 +84,7 @@ class SecurityScannerController extends Controller
                 ];
             }
 
-            // Simpan hasil scan
+            // Save scan result
             $scanResult = new ScanResult([
                 'url' => $url,
                 'backdoor_risk' => $backdoorResult['risk_level'] ?? 'Error',
@@ -103,30 +98,7 @@ class SecurityScannerController extends Controller
             ]);
             $scanResult->save();
 
-            // Simpan riwayat scan
-            $history = ScanHistory::create([
-                'scan_result_id' => $scanResult->id,
-                'url' => $url,
-                'risk_level' => $this->calculateOverallRisk(
-                    $backdoorResult['risk_level'], 
-                    $gamblingResult['risk_level']
-                ),
-                'detected_threats' => $this->compileThreats(
-                    $backdoorResult, 
-                    $gamblingResult, 
-                    $enhancedAnalysis
-                ),
-                'scan_timestamp' => now()
-            ]);
-
-            // Kirim notifikasi
-            $this->sendNotifications($scanResult, $history);
-
-            // Kumpulkan data performa dan broadcast event
-            $performanceData = $this->getPerformanceData();
-            event(new ScanCompleted($scanResult, $performanceData));
-
-            // Hasil rekomendasi AI
+            // Generate AI recommendation
             try {
                 $aiRecommendation = $this->aiRecommendationService->generateRecommendation(
                     $backdoorResult,
