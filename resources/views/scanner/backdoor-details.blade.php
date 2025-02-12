@@ -19,6 +19,7 @@
             pointer-events: none;
             user-select: none;
         }
+
         .wrap-content {
             word-wrap: break-word;
             word-break: break-word;
@@ -502,56 +503,18 @@
             }
         });
 
-        function goBack({
-            duration = 0.3,
-            ease = "power2.inOut",
-            fallbackUrl = '/'
-        } = {}) {
-            // Langsung trigger back navigation
+        function goBack() {
+            const currentPage = window.location.href;
+
             window.history.back();
 
-            // Validate if GSAP is available
-            if (typeof gsap === 'undefined') {
-                return;
-            }
-
-            // Save current scroll position
-            const scrollPosition = window.scrollY;
-
-            // Set initial opacity
-            gsap.set(document.body, {
-                opacity: 0
-            });
-
-            // Fade in content
-            gsap.to(document.body, {
-                opacity: 1,
-                duration: duration,
-                ease: ease,
-                onComplete: () => {
-                    try {
-                        // Store scroll position
-                        sessionStorage.setItem('lastScrollPosition', scrollPosition);
-                    } catch (e) {
-                        console.warn('Unable to save scroll position:', e);
-                    }
+            // Set timeout untuk mengecek apakah halaman sudah berubah
+            setTimeout(() => {
+                if (window.location.href === currentPage) {
+                    window.location.reload();
                 }
-            });
+            }, 100);
         }
-
-        // Add event listener for page load/navigation
-        window.addEventListener('pageshow', function(event) {
-            // Check if the page is being shown from back/forward cache
-            if (event.persisted) {
-                // Force page refresh if needed
-                window.location.reload();
-            } else {
-                // Restore opacity if needed
-                gsap.set(document.body, {
-                    opacity: 1
-                });
-            }
-        });
     </script>
 </body>
 
