@@ -504,17 +504,36 @@
         });
 
         function goBack() {
-            const currentPage = window.location.href;
+            // Clear form resubmission flags
+            if (window.performance && window.performance.navigation.type === window.performance.navigation
+                .TYPE_BACK_FORWARD) {
+                window.location.replace(document.referrer);
+                return;
+            }
 
+            // Hapus status POST dari history jika ada
+            window.history.replaceState(null, '', window.location.href);
+
+            // Lakukan navigasi back
             window.history.back();
 
-            // Set timeout untuk mengecek apakah halaman sudah berubah
+            // Fallback jika masih di halaman yang sama
+            const currentPage = window.location.href;
             setTimeout(() => {
                 if (window.location.href === currentPage) {
-                    window.location.reload();
+                    window.location.replace(document.referrer || '/');
                 }
             }, 100);
         }
+
+        // Tambahkan event listener untuk mencegah form resubmission
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted || (window.performance && window.performance.navigation.type === window.performance
+                    .navigation.TYPE_BACK_FORWARD)) {
+                // Hapus status POST
+                window.history.replaceState(null, '', window.location.href);
+            }
+        });
     </script>
 </body>
 
