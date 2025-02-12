@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Notifications;
+
+use App\Models\Website;
+
+class TelegramSSLExpirationNotification
+{
+    protected $website;
+
+    public function __construct(Website $website)
+    {
+        $this->website = $website;
+    }
+
+    public function __toString()
+    {
+        return sprintf(
+            "🔒 <b>SSL Certificate Expiration Alert</b>\n\n" .
+            "Website: %s\n" .
+            "URL: %s\n" .
+            "Expiration Date: %s\n" .
+            "Days Remaining: %d",
+            htmlspecialchars($this->website->name),
+            htmlspecialchars($this->website->url),
+            $this->website->ssl_expires_at->format('Y-m-d'),
+            $this->website->ssl_expires_at->diffInDays(now())
+        );
+    }
+}

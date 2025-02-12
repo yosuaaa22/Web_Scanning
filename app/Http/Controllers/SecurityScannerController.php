@@ -8,7 +8,12 @@ use App\Services\GamblingDetectionService;
 use App\Services\AIRecommendationService;
 use App\Services\EnhancedDetectionService;
 use App\Models\ScanResult;
+use App\Models\ScanHistory;
+use App\Events\ScanCompleted;
+use App\Notifications\TelegramAlert;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CriticalVulnerabilityAlert;
 
 class SecurityScannerController extends Controller
 {
@@ -84,7 +89,7 @@ class SecurityScannerController extends Controller
                 ];
             }
 
-            // Save scan result
+            // Simpan hasil scan
             $scanResult = new ScanResult([
                 'url' => $url,
                 'backdoor_risk' => $backdoorResult['risk_level'] ?? 'Error',
@@ -98,7 +103,30 @@ class SecurityScannerController extends Controller
             ]);
             $scanResult->save();
 
-            // Generate AI recommendation
+            // Simpan riwayat scan
+            $history = ScanHistory::create([
+                'scan_result_id' => $scanResult->id,
+                'url' => $url,
+                'risk_level' => $this->calculateOverallRisk(
+                    $backdoorResult['risk_level'], 
+                    $gamblingResult['risk_level']
+                ),
+                'detected_threats' => $this->compileThreats(
+                    $backdoorResult, 
+                    $gamblingResult, 
+                    $enhancedAnalysis
+                ),
+                'scan_timestamp' => now()
+            ]);
+
+            // Kirim notifikasi
+            $this->sendNotifications($scanResult, $history);
+
+            // Kumpulkan data performa dan broadcast event
+            $performanceData = $this->getPerformanceData();
+            event(new ScanCompleted($scanResult, $performanceData));
+
+            // Hasil rekomendasi AI
             try {
                 $aiRecommendation = $this->aiRecommendationService->generateRecommendation(
                     $backdoorResult,
@@ -144,4 +172,75 @@ class SecurityScannerController extends Controller
 
         return view('scanner.history', compact('scanResults'));
     }
+
+    private function sendNotifications($scanResult, $history)
+    {
+        try {
+            // Kirim notifikasi email untuk risiko kritikal
+            if ($history->risk_level === 'Critical') {
+                Mail::to(config('mail.admin_email'))->send(
+                    new CriticalVulnerabilityAlert($scanResult)
+                );
+            }
+
+            // Kirim notifikasi Telegram melalui method notify() pada model ScanResult
+            $scanResult->notify(new TelegramAlert("Scan pada URL {$scanResult->url} selesai. Risiko: {$history->risk_level}"));
+
+        } catch (\Exception $e) {
+            Log::error('Notification failed: ' . $e->getMessage());
+        }
+    }
+
+    private function calculateOverallRisk(...$risks)
+    {
+        $levels = ['Low' => 1, 'Medium' => 2, 'High' => 3, 'Critical' => 4];
+        $max = max(array_map(fn($r) => $levels[$r] ?? 0, $risks));
+        return array_flip($levels)[$max] ?? 'Unknown';
+    }
+
+    private function compileThreats(...$results)
+    {
+        return collect($results)
+            ->map(fn($r) => $r['detected'] ?? [])
+            ->flatten()
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
+    private function getPerformanceData()
+    {
+        try {
+            return [
+                'memory_usage' => memory_get_usage(true),
+                'timestamp' => now()->timestamp,
+                'scan_duration' => microtime(true) - LARAVEL_START
+            ];
+        } catch (\Exception $e) {
+            Log::error('Performance data collection failed: ' . $e->getMessage());
+            return [
+                'error' => 'Performance data unavailable',
+                'timestamp' => now()->timestamp
+            ];
+        }
+    }
+    public function showResult()
+
+{
+
+    // Ambil hasil scan terakhir atau semua hasil scan
+
+    $scanResults = ScanResult::latest()->take(10)->get();
+
+    
+
+    return view('scanner.result', [
+
+        'scanResults' => $scanResults
+
+    ]);
+
+}
+
+  
 }

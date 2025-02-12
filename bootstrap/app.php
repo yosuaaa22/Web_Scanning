@@ -10,8 +10,8 @@ use Illuminate\Console\Scheduling\Schedule;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'security.enhanced' => EnhancedSecurityMiddleware::class,
             'security.scan' => SecurityScanMiddleware::class,
         ]);
+
         // Register global middleware
         $middleware->web(append: [
             \Illuminate\Cookie\Middleware\EncryptCookies::class,
@@ -34,13 +35,38 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withSchedule(function (Schedule $schedule) {
+        // Website interval scanning scheduler
+        $schedule->command('scan:check')
+            ->everyMinute()
+            ->appendOutputTo(storage_path('logs/scan-check.log'))
+            ->withoutOverlapping()
+            ->onFailure(function () {
+                Log::channel('scan')->error('Website interval scanning failed');
+            });
+
         // Performance monitoring schedule
         $schedule->command('monitor:performance')
-                ->everyMinute()
-                ->appendOutputTo(storage_path('logs/performance.log'))
-                ->onFailure(function () {
-                    Log::error('Performance monitoring schedule failed');
-                });
+            ->everyMinute()
+            ->appendOutputTo(storage_path('logs/performance.log'))
+            ->onFailure(function () {
+                Log::error('Performance monitoring schedule failed');
+            });
+
+        // Website monitoring schedule
+        $schedule->command('website:monitor')
+            ->everyMinute()
+            ->appendOutputTo(storage_path('logs/website-monitor.log'))
+            ->onFailure(function () {
+                Log::error('Website monitoring schedule failed');
+            });
+
+        // Clean up old monitoring data
+        $schedule->command('monitor:cleanup')
+            ->daily()
+            ->appendOutputTo(storage_path('logs/cleanup.log'))
+            ->onFailure(function () {
+                Log::error('Monitor cleanup schedule failed');
+            });
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->report(function (\Throwable $e) {
@@ -50,5 +76,3 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->create();
-
-    

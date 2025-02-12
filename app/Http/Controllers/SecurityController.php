@@ -7,6 +7,7 @@ use App\Models\LoginAttempt;
 use App\Services\TelegramNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\ScanResultNotification;
 
 class SecurityController extends Controller
 {
@@ -177,4 +178,15 @@ class SecurityController extends Controller
 
         // Optionally send via email (would require email service setup)
     }
+
+    private function sendNotifications($scanResult, $history)
+{
+    try {
+        // Kirim notifikasi Telegram dengan detail lengkap
+        $scanResult->notify(new ScanResultNotification($scanResult));
+        
+    } catch (\Exception $e) {
+        Log::error('Telegram notification failed: ' . $e->getMessage());
+    }
+}
 }

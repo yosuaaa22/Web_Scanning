@@ -3,15 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ScanHistory extends Model
 {
     protected $fillable = [
-        'scan_result_id',
-        'url',
-        'risk_level',
-        'detected_threats',
-        'scan_timestamp'
+        'website_id',       // Tambahkan ini untuk relasi ke Website
+        'scan_result_id',   // Jika ada relasi ke ScanResult
+        'url',              // Duplikasi data untuk histori
+        'risk_level',       // Tingkat risiko
+        'detected_threats', // Ancaman yang terdeteksi
+        'scan_timestamp'    // Waktu scan
     ];
 
     protected $casts = [
@@ -19,7 +21,14 @@ class ScanHistory extends Model
         'scan_timestamp' => 'datetime'
     ];
 
-    public function scanResult()
+    // Relasi ke Website
+    public function website(): BelongsTo
+    {
+        return $this->belongsTo(Website::class);
+    }
+
+    // Relasi ke ScanResult (jika diperlukan)
+    public function scanResult(): BelongsTo
     {
         return $this->belongsTo(ScanResult::class);
     }

@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 
 class ScanResult extends Model
 {
+    use Notifiable;
+
     protected $fillable = [
         'url',
         'backdoor_risk',
@@ -16,11 +19,16 @@ class ScanResult extends Model
 
     protected $casts = [
         'scan_time' => 'datetime',
-        'detailed_report' => 'array'
     ];
 
-    public function history()
+    /**
+     * Tentukan route notifikasi untuk channel telegram.
+     *
+     * @return string|null
+     */
+    public function routeNotificationForTelegram()
     {
-        return $this->hasMany(ScanHistory::class);
+        // Pastikan variabel ini terisi di config/services.php (.env)
+        return config('services.telegram.bot_chat_id');
     }
 }

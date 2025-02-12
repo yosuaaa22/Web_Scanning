@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Notifications;
+
+use App\Models\Website;
+
+class TelegramUptimeNotification
+{
+    protected $website;
+
+    public function __construct(Website $website)
+    {
+        $this->website = $website;
+    }
+
+    public function __toString()
+    {
+        return sprintf(
+            "📊 <b>Monthly Uptime Report</b>\n\n" .
+            "Website: %s\n" .
+            "URL: %s\n" .
+            "Uptime: %.2f%%\n" .
+            "Average Response Time: %.2fms",
+            htmlspecialchars($this->website->name),
+            htmlspecialchars($this->website->url),
+            $this->website->uptime_percentage,
+            $this->website->monitoringLogs()->avg('response_time')
+        );
+    }
+}

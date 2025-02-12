@@ -433,14 +433,29 @@
         </div>
     @endif
 </div>
-<!-- Action Buttons -->
+<<!-- Tombol Aksi -->
+
 <div class="flex justify-center gap-4 mt-8">
+
     <a href="{{ route('scanner.index') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 animate-pulse-slow">
-        <i class="fas fa-search mr-2"></i>Scan Another URL
+
+        <i class="fas fa-search mr-2"></i>Scan URL Lain
+
     </a>
+
     <a href="{{ route('scanner.history') }}" class="bg-gray-700 hover:bg-gray-800 text-white px-6 py-3 rounded-lg transition-colors duration-200">
-        <i class="fas fa-history mr-2"></i>View Scan History
+
+        <i class="fas fa-history mr-2"></i>Lihat Riwayat Scan
+
     </a>
+
+    <a href="{{ route('websites.index') }}" class="bg-red-700 hover:bg-gray-800 text-white px-6 py-3 rounded-lg transition-colors duration-200">
+        <i class="fas fa-chart-line mr-2"></i> MONITORING
+    </a>
+    
+
+</div>
+
 </div>
 <script>
     function toggleDetails(elementId) {

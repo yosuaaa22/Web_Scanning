@@ -39,6 +39,7 @@
         "phpstan/phpstan": "^1.10"
     },
     "autoload": {
+
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
@@ -49,7 +50,11 @@
         "psr-4": {
             "Tests\\": "tests/"
         }
+
     },
+
+  
+    
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

@@ -3,98 +3,113 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+// Di bagian atas file
+use App\Models\SslDetail;
 
 class Website extends Model
 {
-    use HasFactory;
-
-    protected $fillable = [
-        'name',
-        'url',
-        'status',
-        'response_time',
-        'last_checked_at',
-        'ssl_expires_at',
-        'domain_expires_at',
-        'uptime_percentage',
-        'check_interval',
-        'expected_status_code',
-        'expected_response_pattern',
-        'alert_threshold_response_time',
-        'notification_channels'
-    ];
-
+    protected $table = 'websitess';
+    
+    protected $guarded = [];
+    
     protected $casts = [
-        'last_checked_at' => 'datetime',
-        'ssl_expires_at' => 'datetime',
-        'domain_expires_at' => 'datetime',
-        'vulnerabilities' => 'array',
-        'notification_channels' => 'array',
-        'uptime_percentage' => 'float',
-        'alert_threshold_response_time' => 'integer',
-        'expected_status_code' => 'integer',
+        'monitoring_settings' => 'array',
+        'notification_settings' => 'array',
+        'analysis_data' => 'array',
+        'last_checked' => 'datetime',
+        'next_scheduled_scan' => 'datetime',
+        'scan_results' => 'array',
     ];
 
-    protected $attributes = [
-        'vulnerabilities' => '[]',
-        'notification_channels' => '["email"]',
-        'check_interval' => 300, // 5 minutes default
-        'expected_status_code' => 200,
-        'alert_threshold_response_time' => 1000 // 1 second default
-    ];
-
-    // Relationships
-    public function monitoringLogs(): HasMany
+    // Relasi ke SslDetails
+    public function sslDetails(): HasOne
     {
-        return $this->hasMany(MonitoringLog::class);
+        return $this->hasOne(SslDetail::class, 'website_id');
     }
 
-    public function uptimeReports(): HasMany
+    // Relasi ke ScanHistori (diubah dari ScanHistory)
+    
+    public function scanHistori(): HasMany
     {
-        return $this->hasMany(UptimeReport::class);
+        return $this->hasMany(ScanHistori::class, 'website_id');
     }
 
-    public function securityScans(): HasMany
+    // Relasi ke scan terakhir
+    public function latestScan(): HasOne
     {
-        return $this->hasMany(SecurityScan::class);
+        return $this->hasOne(ScanHistori::class, 'website_id')
+            ->latestOfMany('scanned_at');
     }
 
-    // Scopes
-    public function scopeNeedsCheck($query)
+    // Mutator untuk URL
+    protected function url(): Attribute
     {
-        return $query->where('last_checked_at', '<=', now()->subSeconds('check_interval'));
+        return Attribute::make(
+            set: fn ($value) => $this->normalizeUrl($value),
+        )->shouldCache();
     }
 
-    // Helper Methods
-    public function isDown(): bool
+    // Normalisasi URL
+    private function normalizeUrl(string $url): string
     {
-        return $this->status === 'down';
+        $url = Str::lower(trim($url));
+        
+        if (!Str::startsWith($url, ['http://', 'https://'])) {
+            $url = 'https://' . $url;
+        }
+        
+        $parsed = parse_url($url);
+        $host = str_replace('www.', '', $parsed['host'] ?? '');
+        
+        return rtrim(
+            sprintf(
+                '%s://%s%s',
+                $parsed['scheme'] ?? 'https',
+                $host,
+                $parsed['path'] ?? ''
+            ),
+            '/'
+        );
     }
 
-    public function hasHighLatency(): bool
+    // Cek status website
+    public function isOnline(): bool
     {
-        return $this->response_time > $this->alert_threshold_response_time;
+        return $this->status === 'up';
     }
 
-    public function sslExpiresWithin(int $days): bool
+    // Hitung persentase uptime yang disesuaikan
+    public function uptimePercentage(int $days = 7): float
     {
-        return $this->ssl_expires_at && 
-               $this->ssl_expires_at->lte(now()->addDays($days));
-    }
-
-    public function calculateUptimePercentage(): float
-    {
-        $total = $this->monitoringLogs()
-            ->where('created_at', '>=', now()->subMonth())
+        $total = $this->scanHistori()
+            ->where('scanned_at', '>=', now()->subDays($days))
             ->count();
-            
-        $uptime = $this->monitoringLogs()
-            ->where('created_at', '>=', now()->subMonth())
+
+        if ($total === 0) {
+            return 100.0;
+        }
+
+        $successful = $this->scanHistori()
             ->where('status', 'up')
+            ->where('scanned_at', '>=', now()->subDays($days))
             ->count();
 
-        return $total > 0 ? ($uptime / $total) * 100 : 100;
+        return round(($successful / $total) * 100, 2);
+    }
+
+    // Scope untuk website aktif
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    // Scope untuk status dengan penanganan case
+    public function scopeWithStatus($query, string $status)
+    {
+        return $query->where('status', Str::lower($status));
     }
 }
